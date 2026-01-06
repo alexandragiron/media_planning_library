@@ -1,2 +1,673 @@
-# media_planning_library
-Paid Social Media planning library
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RingCentral Social Media Marketing Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .rc-indigo { background-color: #0669ff; }
+        .rc-indigo-text { color: #0669ff; }
+        .card { background: white; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .input-field { border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 12px; width: 100%; transition: border-color 0.2s; font-size: 0.875rem; }
+        .input-field:focus { border-color: #0669ff; outline: none; ring: 2px solid rgba(6, 105, 255, 0.2); }
+        .tab-btn.active { border-bottom: 2px solid #0669ff; color: #0669ff; font-weight: 600; }
+        .hidden { display: none; }
+        .limit-pill { font-size: 10px; padding: 2px 6px; border-radius: 999px; font-weight: bold; }
+        .limit-ok { background: #d1fae5; color: #065f46; }
+        .limit-warn { background: #fee2e2; color: #991b1b; }
+        .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+        [contenteditable="true"]:focus { outline: 2px solid #0669ff; border-radius: 4px; padding: 4px; background-color: white !important; }
+        .goal-input { width: 100%; font-size: 0.75rem; font-weight: 700; color: #0669ff; background: transparent; border: none; text-align: right; }
+        .goal-input:focus { outline: none; border-bottom: 1px solid #0669ff; }
+        
+        .hub-input { transition: all 0.2s; border: 1px solid #e5e7eb; font-size: 10px; padding: 2px 4px; border-radius: 4px; background: white; }
+        .hub-input:focus { border-color: #0669ff !important; box-shadow: 0 0 0 2px rgba(6, 105, 255, 0.1); outline: none; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="rc-indigo text-white p-4 shadow-lg">
+            <div class="max-w-[1800px] mx-auto flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold">Social Media Marketing Hub</h1>
+                    <p class="text-blue-100 text-xs">Omni-Channel Strategy & Unified Performance Library</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] uppercase font-bold text-blue-200">Current Naming</p>
+                    <span class="text-xs font-mono bg-blue-800 px-2 py-0.5 rounded" id="current-naming-display">GENERATING...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Navigation -->
+        <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+            <div class="max-w-[1800px] mx-auto flex px-6 overflow-x-auto whitespace-nowrap">
+                <button onclick="showTab('planner')" class="tab-btn active px-6 py-4 text-sm transition-all" id="btn-planner">Campaign Planner</button>
+                <button onclick="showTab('active-campaigns')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-active-campaigns">Campaign Summary Hub</button>
+                <button onclick="showTab('library')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-library">Audience & ICP Library</button>
+                <button onclick="showTab('creative')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-creative">Creative Requirements</button>
+                <button onclick="showTab('bmid-history')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-bmid-history">BMID Registry</button>
+            </div>
+        </nav>
+
+        <main class="max-w-[1800px] mx-auto w-full p-6 space-y-8 flex-grow">
+
+            <!-- TAB: PLANNER -->
+            <div id="tab-planner" class="space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <!-- Config Form -->
+                    <div class="card p-6 lg:col-span-3">
+                        <h2 class="text-lg font-bold mb-4 flex items-center justify-between">
+                            <span class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 rc-indigo-text" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Campaign Configuration
+                            </span>
+                            <button onclick="saveCampaignToHub()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-700 transition shadow-sm">
+                                SAVE TO SUMMARY HUB
+                            </button>
+                        </h2>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="config-form">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Location</label>
+                                <select id="input-location" class="input-field" onchange="updateNaming()">
+                                    <option value="US">US Only</option>
+                                    <option value="CA">CA Only</option>
+                                    <option value="US_CA">US & CA</option>
+                                    <option value="INT">INT (International)</option>
+                                    <option value="NA">NA (North America)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Global Objective</label>
+                                <select id="input-objective" class="input-field" onchange="updateNaming()">
+                                    <option value="PR">PR (Prospecting)</option>
+                                    <option value="RT">RT (Retargeting)</option>
+                                    <option value="EX">EX (Expansion)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Campaign Stage</label>
+                                <select id="input-stage" class="input-field" onchange="updateNaming()">
+                                    <option value="AW">Awareness (AW)</option>
+                                    <option value="CO">Consideration (CO)</option>
+                                    <option value="DE">Demand (DE)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Vendor</label>
+                                <select id="input-vendor" class="input-field" onchange="handleVendorChange()">
+                                    <option value="LinkedIn">LinkedIn</option>
+                                    <option value="Meta">Meta</option>
+                                    <option value="Twitter">Twitter/X</option>
+                                    <option value="YouTube">YouTube</option>
+                                    <option value="Reddit">Reddit</option>
+                                    <option value="StackAdapt">StackAdapt</option>
+                                    <option value="Adaptive">Adaptive</option>
+                                    <option value="DemandGen">Google DemandGen</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Product</label>
+                                <select id="input-product" class="input-field" onchange="updateNaming()">
+                                    <option value="REX">REX (RingEX)</option>
+                                    <option value="RCX">RCX (Contact Center)</option>
+                                    <option value="AIR">AIR (RingSense AI)</option>
+                                    <option value="BuyOut">BuyOut</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Objective Detail</label>
+                                <select id="input-objdetail" class="input-field" onchange="updateNaming()">
+                                    <option value="INT">Integrated</option>
+                                    <option value="BRD">Brand</option>
+                                    <option value="AWS">AWS</option>
+                                    <option value="EGR">Evergreen</option>
+                                    <option value="ABM">ABM</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Sub-Industry</label>
+                                <select id="input-industry" class="input-field" onchange="updateNaming()">
+                                    <option value="">-- Optional --</option>
+                                    <option value="FIN">Finance</option>
+                                    <option value="PRO">ProServ</option>
+                                    <option value="HLT">Healthcare</option>
+                                    <option value="RE">Real Estate</option>
+                                    <option value="EDU">Education</option>
+                                    <option value="MANU">Manufacturing</option>
+                                    <option value="RTL">Retail</option>
+                                    <option value="GOV">Government</option>
+                                    <option value="TRLOG">Transport & Logistics</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Business Size</label>
+                                <select id="input-bizsize" class="input-field" onchange="updateNaming()">
+                                    <option value="SMB">SMB</option>
+                                    <option value="MM">Mid-Market</option>
+                                    <option value="ENT">Enterprise</option>
+                                    <option value="GEN">General</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Execution Detail Row -->
+                        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="config-form-secondary">
+                            <div>
+                                <label class="block text-[10px] font-bold text-indigo-600 uppercase mb-1">Media Objective</label>
+                                <select id="input-mediaobj" class="input-field border-indigo-200" onchange="updateNaming()">
+                                    <option value="WEBTRAFFIC">Webtraffic</option>
+                                    <option value="LGF">LGF (Lead Gen Form)</option>
+                                    <option value="REACH">Reach</option>
+                                    <option value="VREACH">Video Reach</option>
+                                    <option value="VVIEW">Video View</option>
+                                    <option value="CONV">Conversion</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-indigo-600 uppercase mb-1">Ad Type</label>
+                                <select id="input-adtype" class="input-field border-indigo-200" onchange="updateNaming()">
+                                    <option value="IMAGE">Image</option>
+                                    <option value="VIDEO">Video</option>
+                                    <option value="CTV">CTV</option>
+                                    <option value="CAROUSEL">Carousel</option>
+                                    <option value="TEXT">Text</option>
+                                    <option value="NATIVE">Native</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-indigo-600 uppercase mb-1">Naming Date Ref (MMYY)</label>
+                                <input type="month" id="input-date" class="input-field border-indigo-200" onchange="updateNaming()">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Introduction Date</label>
+                                <input type="date" id="input-intro-date" class="input-field">
+                            </div>
+                        </div>
+
+                        <!-- Lifecycle Dates & Suffix -->
+                        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="config-form-dates">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Launch Date</label>
+                                <input type="date" id="input-launch-date" class="input-field" onchange="updateNaming()">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Target End Date</label>
+                                <input type="date" id="input-end-date" class="input-field">
+                            </div>
+                            <div class="lg:col-span-2">
+                                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">Suffix / Naming Reference</label>
+                                <input type="text" id="input-suffix" class="input-field" placeholder="e.g. Q1_Promo" oninput="updateNaming()">
+                            </div>
+                        </div>
+                        
+                        <div id="lan-container" class="hidden mt-4">
+                            <button id="btn-lan" onclick="toggleLAN()" class="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg text-xs font-bold transition-all">
+                                <div id="lan-dot" class="w-2 h-2 rounded-full bg-gray-400"></div>
+                                Use LinkedIn Network (LAN)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- GOAL SUMMARY -->
+                    <div class="card p-6 h-fit lg:sticky lg:top-[88px]">
+                        <h2 class="text-lg font-bold mb-4 border-b pb-2 text-indigo-700">Goal Summary</h2>
+                        <div class="space-y-4">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase">Total Budget (Period)</label>
+                                    <div class="flex items-center text-gray-700 font-bold">
+                                        <span class="text-xs mr-1">$</span>
+                                        <input type="number" id="budget-total" class="text-right bg-transparent border-none focus:ring-0 w-24 text-sm font-bold" value="10000" onchange="saveDraftBudget()">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-x-2 gap-y-2 border-t pt-3">
+                                    <div>
+                                        <label class="block text-[9px] font-bold text-gray-400 uppercase">Year</label>
+                                        <input type="number" id="goal-year" value="2026" class="text-[11px] font-bold text-indigo-600 bg-transparent border-none focus:ring-0 w-full p-0" onchange="loadDraftBudget()">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[9px] font-bold text-gray-400 uppercase">Period Filter</label>
+                                        <select id="goal-month" class="text-[11px] font-bold text-indigo-600 bg-transparent border-none focus:ring-0 w-full p-0 text-right" onchange="loadDraftBudget()">
+                                            <option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option>
+                                            <option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option>
+                                            <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-2 pt-1">
+                                    <div class="flex justify-between items-center">
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">CPM Goal</label>
+                                        <input type="text" id="goal-cpm" placeholder="$0.00" class="goal-input">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">CPC Goal</label>
+                                        <input type="text" id="goal-cpc" placeholder="$0.00" class="goal-input">
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">LtO Target</label>
+                                        <input type="text" id="goal-lto" placeholder="0%" class="goal-input">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 space-y-2">
+                                <div>
+                                    <p class="text-[9px] font-bold text-indigo-400 uppercase mb-1">Active BMID (Unique)</p>
+                                    <p id="summary-bmid" class="text-[10px] font-mono text-indigo-700 break-all font-bold">---</p>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-bold text-indigo-400 uppercase mb-1">Destination URL</p>
+                                    <input type="text" id="destination-url" placeholder="https://..." class="w-full bg-transparent border-none text-[10px] p-0 focus:ring-0 text-indigo-600 font-mono italic" oninput="updateFinalURL()">
+                                </div>
+                                <div class="pt-2 border-t border-indigo-200 text-center">
+                                    <p class="text-[9px] font-bold text-indigo-500 uppercase mb-1">FINAL DESTINATION URL</p>
+                                    <p id="final-url-display" class="text-[10px] font-mono text-indigo-800 break-all leading-tight text-center">---</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: CAMPAIGN SUMMARY HUB -->
+            <div id="tab-active-campaigns" class="hidden space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-end gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold">Campaign Summary Hub</h2>
+                        <p class="text-sm text-gray-500 italic">Historical data and period-specific performance tracking.</p>
+                    </div>
+                    <div class="flex gap-2">
+                         <select id="hub-month-filter" class="input-field py-1 text-xs w-40" onchange="renderCampaignHub()">
+                             <option value="all">Filter Month/Q</option>
+                             ${monthsOptions.map(m => `<option value="${m}">${m}</option>`).join('')}
+                         </select>
+                         <select id="hub-product-filter" class="input-field py-1 text-xs w-32" onchange="renderCampaignHub()">
+                             <option value="all">Filter Product</option>
+                             <option value="REX">REX</option><option value="RCX">RCX</option><option value="AIR">AIR</option><option value="BuyOut">BuyOut</option>
+                         </select>
+                    </div>
+                </div>
+
+                <div class="card overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse" id="campaign-hub-table">
+                            <thead class="bg-gray-100 uppercase text-[8px] font-bold text-gray-500 border-b">
+                                <tr>
+                                    <th class="p-2 bg-indigo-50 border-r border-indigo-100 w-24">Asset Link</th>
+                                    <th class="p-2 bg-indigo-50 border-r border-indigo-100 w-24">Copy Link</th>
+                                    <th class="p-2 w-16">Status</th>
+                                    <th class="p-2 text-center w-24">Month(s)</th>
+                                    <th class="p-2 text-center w-16">Year</th>
+                                    <th class="p-2 text-center">Intro Date</th>
+                                    <th class="p-2 text-center text-indigo-600">Launch Date</th>
+                                    <th class="p-2 text-center">End Date</th>
+                                    <th class="p-2">Prod</th>
+                                    <th class="p-2">Vendor</th>
+                                    <th class="p-2 w-32">Campaign Name</th>
+                                    <th class="p-2">BMID</th>
+                                    <th class="p-2 w-32">Inclusion (SOP)</th>
+                                    <th class="p-2 w-32">Exclusion (SOP)</th>
+                                    <th class="p-2 bg-blue-50">Total Budget (Σ)</th>
+                                    <th class="p-2 bg-green-50">Actual Spend (Σ)</th>
+                                    <th class="p-2 text-indigo-700">Goal CPC</th>
+                                    <th class="p-2 bg-blue-50 text-blue-700">Actual CPC</th>
+                                    <th class="p-2 text-indigo-700">Goal CPM</th>
+                                    <th class="p-2 bg-blue-50 text-blue-700">Actual CPM</th>
+                                    <th class="p-2">Goal LtO</th>
+                                    <th class="p-2 bg-blue-50">Actual LtO</th>
+                                    <th class="p-2 w-32">Final Destination URL</th>
+                                    <th class="p-2 text-center">Del</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200" id="campaign-hub-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: AUDIENCE LIBRARY (MASTER SOP) -->
+            <div id="tab-library" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold">Audience & ICP Library (Master SOP)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="audience-grid">
+                    <div class="audience-card card p-5 border-t-4 border-blue-600" data-product="REX">
+                        <h3 class="font-bold mb-2">REX: SOP</h3>
+                        <div class="text-[10px]">
+                            <p class="font-bold text-green-600 uppercase">Inclusion</p>
+                            <div id="sop-rex-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">IT Decision Makers, CIOs, CTOs. Interests: Unified Comms.</div>
+                            <p class="font-bold text-red-500 uppercase">Exclusion</p>
+                            <div id="sop-rex-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">Existing Users, Residential.</div>
+                        </div>
+                    </div>
+                    <div class="audience-card card p-5 border-t-4 border-green-600" data-product="RCX">
+                        <h3 class="font-bold mb-2">RCX: SOP</h3>
+                        <div class="text-[10px]">
+                            <p class="font-bold text-green-600 uppercase">Inclusion</p>
+                            <div id="sop-rcx-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">Customer Experience Leads, Support Heads.</div>
+                            <p class="font-bold text-red-500 uppercase">Exclusion</p>
+                            <div id="sop-rcx-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">B2C roles.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CREATIVE REQUIREMENTS -->
+            <div id="tab-creative" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold">Creative Requirements Checklist</h2>
+                <div class="spec-grid">
+                    <div class="card p-5 border-l-4 border-indigo-600">
+                        <h3 class="font-bold text-indigo-700 uppercase text-[10px] tracking-widest mb-3">LinkedIn</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Headline:</strong> Max 70 chars</p>
+                            <p><strong>Description:</strong> Max 70 chars</p>
+                            <p><strong>Intro Text:</strong> 150-600 chars</p>
+                        </div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-blue-500">
+                        <h3 class="font-bold text-blue-600 uppercase text-[10px] tracking-widest mb-3">Meta</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Headline:</strong> 25-40 chars</p>
+                            <p><strong>Description:</strong> 30 chars (Feed)</p>
+                            <p><strong>Primary Text:</strong> 125 chars</p>
+                        </div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-orange-600">
+                        <h3 class="font-bold text-orange-600 uppercase text-[10px] tracking-widest mb-3">Reddit</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Headline:</strong> Max 300 chars</p>
+                            <p><strong>Body Text:</strong> Optional but recommended</p>
+                        </div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-red-500">
+                        <h3 class="font-bold text-red-600 uppercase text-[10px] tracking-widest mb-3">YouTube</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Short Headline:</strong> 15 chars</p>
+                            <p><strong>Long Headline:</strong> 90 chars</p>
+                            <p><strong>Description:</strong> 70 chars</p>
+                        </div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-green-600">
+                        <h3 class="font-bold text-green-600 uppercase text-[10px] tracking-widest mb-3">DemandGen</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Headlines (up to 5):</strong> 40 chars each</p>
+                            <p><strong>Descriptions (up to 5):</strong> 90 chars each</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BMID REGISTRY -->
+            <div id="tab-bmid-history" class="hidden space-y-6">
+                <h2 class="text-2xl font-bold">BMID Registry</h2>
+                <div class="card overflow-hidden">
+                    <table class="w-full text-left text-sm" id="registry-table">
+                        <thead class="bg-gray-100 uppercase text-xs font-bold text-gray-600">
+                            <tr><th class="p-4">Date</th><th class="p-4">Campaign Name</th><th class="p-4">BMID</th><th class="p-4">Vendor</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200" id="registry-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        let hubCampaigns = [];
+        let bmidRegistry = [];
+        let isLANEnabled = false;
+        let draftBudgetPeriods = {}; 
+
+        const monthsOptions = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Q1", "Q2", "Q3", "Q4"];
+
+        function showTab(tabId) {
+            document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.add('active');
+            if (tabId === 'active-campaigns') renderCampaignHub();
+            if (tabId === 'bmid-history') renderRegistry();
+        }
+
+        function handleVendorChange() {
+            const v = document.getElementById('input-vendor').value;
+            const lan = document.getElementById('lan-container');
+            if (v === 'LinkedIn') lan.classList.remove('hidden');
+            else { lan.classList.add('hidden'); isLANEnabled = false; updateLANUI(); }
+            updateNaming();
+        }
+
+        function toggleLAN() { isLANEnabled = !isLANEnabled; updateLANUI(); updateNaming(); }
+
+        function updateLANUI() {
+            const btn = document.getElementById('btn-lan');
+            const dot = document.getElementById('lan-dot');
+            if (isLANEnabled) {
+                btn.classList.add('border-blue-600', 'bg-blue-50', 'text-blue-700');
+                dot.classList.add('bg-blue-600'); dot.classList.remove('bg-gray-400');
+            } else {
+                btn.classList.remove('border-blue-600', 'bg-blue-50', 'text-blue-700');
+                dot.classList.remove('bg-blue-600'); dot.classList.add('bg-gray-400');
+            }
+        }
+
+        function loadDraftBudget() {
+            const year = document.getElementById('goal-year').value;
+            const month = document.getElementById('goal-month').value;
+            const key = `${year}-${month}`;
+            document.getElementById('budget-total').value = draftBudgetPeriods[key] || "10000";
+        }
+
+        function saveDraftBudget() {
+            const year = document.getElementById('goal-year').value;
+            const month = document.getElementById('goal-month').value;
+            const key = `${year}-${month}`;
+            draftBudgetPeriods[key] = document.getElementById('budget-total').value;
+        }
+
+        function generateUniqueBMID(prd, vnd) {
+            const ps = "PS";
+            const now = new Date();
+            const nowStr = now.toISOString().slice(0,10).replace(/-/g,'');
+            let bmid = "";
+            let isUnique = false;
+            while (!isUnique) {
+                const rand = Math.floor(Math.random() * 9999999999) + 1;
+                bmid = `${prd}${ps}${vnd}${nowStr}${rand.toString().padStart(10,'0')}`.toUpperCase().substring(0, 31);
+                if (!bmidRegistry.some(r => r.bmid === bmid)) isUnique = true;
+            }
+            return bmid;
+        }
+
+        function updateNaming() {
+            const locEl = document.getElementById('input-location');
+            if(!locEl) return;
+            const dat = document.getElementById('input-launch-date').value;
+            const prd = document.getElementById('input-product').value;
+            const vnd = document.getElementById('input-vendor').value;
+            
+            let dateStr = "MMYY";
+            if (dat) { const [y, m, d] = dat.split('-'); dateStr = m + y.substring(2); }
+
+            let parts = [locEl.value, document.getElementById('input-objective').value, document.getElementById('input-stage').value, vnd, prd, document.getElementById('input-objdetail').value];
+            if (document.getElementById('input-industry').value) parts.push(document.getElementById('input-industry').value);
+            parts.push(document.getElementById('input-bizsize').value, document.getElementById('input-mediaobj').value, document.getElementById('input-adtype').value, dateStr);
+            if (isLANEnabled) parts.push('LAN');
+            const suf = document.getElementById('input-suffix').value.trim().replace(/\s+/g, '_');
+            if (suf) parts.push(suf);
+
+            const result = parts.join('_').toUpperCase().substring(0, 80);
+            document.getElementById('current-naming-display').innerText = result;
+
+            const bmid = generateUniqueBMID(prd, vnd);
+            document.getElementById('summary-bmid').innerText = bmid;
+            updateFinalURL();
+        }
+
+        function updateFinalURL() {
+            const dest = document.getElementById('destination-url').value;
+            const bmid = document.getElementById('summary-bmid').innerText;
+            const display = document.getElementById('final-url-display');
+            if (dest && bmid !== '---') {
+                const sep = dest.includes('?') ? '&' : '?';
+                display.innerText = `${dest}${sep}BMID=${bmid}`;
+            } else { display.innerText = "---"; }
+        }
+
+        function saveCampaignToHub() {
+            const product = document.getElementById('input-product').value;
+            const vendor = document.getElementById('input-vendor').value;
+            const name = document.getElementById('current-naming-display').innerText;
+            const bmid = document.getElementById('summary-bmid').innerText;
+            
+            // --- AUTOMATIC BMID REGISTRY ENTRY ---
+            bmidRegistry.unshift({ date: new Date().toLocaleString(), name, bmid, vendor });
+
+            const incId = `sop-${product.toLowerCase()}-inc`;
+            const excId = `sop-${product.toLowerCase()}-exc`;
+            const inclusion = document.getElementById(incId)?.innerText || 'Ref Library SOP';
+            const exclusion = document.getElementById(excId)?.innerText || 'Ref Library SOP';
+
+            const campaign = {
+                id: Date.now(),
+                status: 'Planned',
+                name, bmid, product, vendor,
+                month: [document.getElementById('goal-month').value],
+                year: document.getElementById('goal-year').value,
+                introDate: document.getElementById('input-intro-date').value || '-',
+                launchDate: document.getElementById('input-launch-date').value || '-',
+                endDate: document.getElementById('input-end-date').value || '-',
+                goals: { 
+                    cpm: document.getElementById('goal-cpm').value || '0', 
+                    cpc: document.getElementById('goal-cpc').value || '0', 
+                    lto: document.getElementById('goal-lto').value || '0' 
+                },
+                periods: {},
+                assetLink: '', copyLink: '',
+                finalUrl: document.getElementById('final-url-display').innerText,
+                inclusion, exclusion
+            };
+
+            Object.keys(draftBudgetPeriods).forEach(k => {
+                campaign.periods[k] = { budget: draftBudgetPeriods[k], spend: 0, cpc: '-', cpm: '-', lto: '-' };
+            });
+
+            hubCampaigns.unshift(campaign);
+            resetPlanner();
+            renderRegistry(); // Ensure Registry UI is ready
+            alert(`SUCCESS: Campaign logged to Hub & BMID [${bmid}] registered in Registry tab.`);
+        }
+
+        function resetPlanner() {
+            const fields = ["input-intro-date", "input-launch-date", "input-end-date", "input-suffix", "destination-url", "goal-cpm", "goal-cpc", "goal-lto", "budget-total"];
+            fields.forEach(id => document.getElementById(id).value = "");
+            draftBudgetPeriods = {};
+            isLANEnabled = false; updateLANUI(); updateNaming();
+        }
+
+        function renderCampaignHub() {
+            const body = document.getElementById('campaign-hub-body');
+            const pF = document.getElementById('hub-product-filter').value;
+            const mF = document.getElementById('hub-month-filter').value;
+            body.innerHTML = '';
+            
+            const filtered = hubCampaigns.filter(c => (pF==='all'||c.product===pF) && (mF==='all'||c.month.includes(mF)));
+
+            filtered.forEach(c => {
+                let actualSpend = 0, totalBudget = 0, actuals = { cpc: '-', cpm: '-', lto: '-' };
+                c.month.forEach(m => {
+                    const k = `${c.year}-${m}`;
+                    if (c.periods[k]) {
+                        actualSpend += parseFloat(c.periods[k].spend || 0);
+                        totalBudget += parseFloat(c.periods[k].budget || 0);
+                        if (c.month.indexOf(m)===0) actuals = { cpc: c.periods[k].cpc, cpm: c.periods[k].cpm, lto: c.periods[k].lto };
+                    }
+                });
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-gray-50 transition-all";
+                row.innerHTML = `
+                    <td class="p-2 border-r border-indigo-100"><input type="text" value="${c.assetLink}" class="hub-input w-full" onchange="updateHubField(${c.id}, 'assetLink', this.value)"></td>
+                    <td class="p-2 border-r border-indigo-100"><input type="text" value="${c.copyLink}" class="hub-input w-full" onchange="updateHubField(${c.id}, 'copyLink', this.value)"></td>
+                    <td class="p-2">
+                        <select onchange="updateHubField(${c.id}, 'status', this.value)" class="hub-input font-bold ${c.status==='Active'?'text-green-600':(c.status==='Blocked'?'text-red-600':'text-gray-500')}">
+                            <option value="Planned" ${c.status==='Planned'?'selected':''}>Planned</option>
+                            <option value="Active" ${c.status==='Active'?'selected':''}>Active</option>
+                            <option value="Blocked" ${c.status==='Blocked'?'selected':''}>Blocked</option>
+                        </select>
+                    </td>
+                    <td class="p-2">
+                        <select multiple class="text-[8px] border rounded w-full h-8" onchange="updateHubMultiMonth(${c.id}, this)">
+                            ${monthsOptions.map(m => `<option value="${m}" ${c.month.includes(m)?'selected':''}>${m}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="p-2"><input type="number" value="${c.year}" class="hub-input w-12 text-center" onchange="updateHubField(${c.id}, 'year', this.value)"></td>
+                    <td class="p-2 text-[9px] text-gray-400 font-mono text-center">${c.introDate}</td>
+                    <td class="p-2 text-[9px] text-indigo-600 font-bold font-mono text-center">${c.launchDate}</td>
+                    <td class="p-2 text-[9px] text-gray-400 font-mono text-center">${c.endDate}</td>
+                    <td class="p-2 font-bold text-indigo-700">${c.product}</td>
+                    <td class="p-2 font-bold text-gray-600 text-[10px]">${c.vendor}</td>
+                    <td class="p-2 w-32 font-bold text-[9px] leading-tight break-all">${c.name}</td>
+                    <td class="p-2 font-mono text-[9px] text-indigo-400">${c.bmid}</td>
+                    <td class="p-2"><div contenteditable="true" class="p-1 bg-gray-50 text-[9px] min-h-[24px] rounded border" onblur="updateHubField(${c.id}, 'inclusion', this.innerText)">${c.inclusion}</div></td>
+                    <td class="p-2"><div contenteditable="true" class="p-1 bg-gray-50 text-[9px] min-h-[24px] rounded border" onblur="updateHubField(${c.id}, 'exclusion', this.innerText)">${c.exclusion}</div></td>
+                    <td class="p-2 font-bold text-[9px] bg-blue-50">$${totalBudget.toLocaleString()}</td>
+                    <td class="p-2 bg-green-50">
+                        <input type="text" value="${actualSpend || 0}" class="hub-input w-16 font-bold text-green-700" ${c.month.length > 1 ? 'readonly' : `onchange="updateActualPeriodValue(${c.id}, 'spend', this.value)"`}>
+                    </td>
+                    <td class="p-2 text-indigo-700 font-bold text-[9px]">${c.goals.cpc}</td>
+                    <td class="p-2 bg-blue-50 text-[9px]"><input type="text" value="${actuals.cpc}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'cpc', this.value)"`}></td>
+                    <td class="p-2 text-indigo-700 font-bold text-[9px]">${c.goals.cpm}</td>
+                    <td class="p-2 bg-blue-50 text-[9px]"><input type="text" value="${actuals.cpm}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'cpm', this.value)"`}></td>
+                    <td class="p-2 text-gray-400 font-bold text-[9px]">${c.goals.lto}</td>
+                    <td class="p-2 bg-blue-50 text-[9px]"><input type="text" value="${actuals.lto}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'lto', this.value)"`}></td>
+                    <td class="p-2 w-32 text-[8px] text-blue-600 break-all italic">${c.finalUrl}</td>
+                    <td class="p-2 text-center"><button onclick="deleteCampaign(${c.id})" class="text-red-400 font-bold">×</button></td>
+                `;
+                body.appendChild(row);
+            });
+        }
+
+        function updateActualPeriodValue(id, field, val) {
+            const c = hubCampaigns.find(x => x.id === id);
+            if (!c || c.month.length !== 1) return;
+            const key = `${c.year}-${c.month[0]}`;
+            if (!c.periods[key]) c.periods[key] = { budget: 0, spend: 0, cpc: '-', cpm: '-', lto: '-' };
+            c.periods[key][field] = val;
+            renderCampaignHub();
+        }
+
+        function updateHubMultiMonth(id, select) {
+            const c = hubCampaigns.find(x => x.id === id);
+            if (c) { c.month = Array.from(select.selectedOptions).map(o => o.value); renderCampaignHub(); }
+        }
+
+        function updateHubField(id, field, val) { const c = hubCampaigns.find(x => x.id === id); if (c) { c[field] = val; renderCampaignHub(); } }
+        function deleteCampaign(id) { if(confirm("Delete row?")) { hubCampaigns = hubCampaigns.filter(x => x.id !== id); renderCampaignHub(); } }
+
+        function renderRegistry() {
+            const body = document.getElementById('registry-body');
+            body.innerHTML = '';
+            bmidRegistry.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td class="p-4 text-xs text-gray-400">${item.date}</td><td class="p-4 font-bold text-gray-700 text-xs">${item.name}</td><td class="p-4 font-mono text-indigo-600 text-xs">${item.bmid}</td><td class="p-4 text-xs font-semibold">${item.vendor}</td>`;
+                body.appendChild(row);
+            });
+        }
+
+        window.onload = () => { updateNaming(); };
+    </script>
+</body>
+</html>
