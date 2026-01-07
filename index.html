@@ -138,7 +138,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
     </style>
     <script>
-        // GLOBAL SCOPE - UI Functions
+        // GLOBAL SCOPE UI Functions
         window.showTab = function(id) {
             document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -197,16 +197,16 @@
                 dateStr = parts[1] + parts[0].substring(2); 
             }
 
-            // SEGMENT FORMATTING RULES:
-            // Location, General Objective, Stage, and Product: ALL CAPS
+            // Naming convention requirements:
+            // Location, Stage, Product, and General Objective: ALL CAPS
             // Others: Title Case
             const formattedParts = [
-                type.charAt(0).toUpperCase() + type.slice(1).toLowerCase(), // Type: Title Case
-                loc.toUpperCase(), // Location: ALL CAPS
-                obj.toUpperCase(), // General Objective: ALL CAPS
-                stg.toUpperCase(), // Stage: ALL CAPS
-                vendor.charAt(0).toUpperCase() + vendor.slice(1).toLowerCase(), // Vendor: Title Case
-                product.toUpperCase() // Product: ALL CAPS (New Request)
+                type.charAt(0).toUpperCase() + type.slice(1).toLowerCase(), // Type
+                loc.toUpperCase(), // Location - ALL CAPS
+                obj.toUpperCase(), // General Objective - ALL CAPS
+                stg.toUpperCase(), // Stage - ALL CAPS
+                vendor.charAt(0).toUpperCase() + vendor.slice(1).toLowerCase(), // Vendor
+                product.toUpperCase() // Product: ALL CAPS
             ];
             
             if (promo) formattedParts.push(promo.charAt(0).toUpperCase() + promo.slice(1));
@@ -403,9 +403,9 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Setup
+        // Firebase Initialization
         let db, auth, user;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rc-marketing-hub-final-v9';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rc-marketing-hub-final-v10';
 
         // Global State
         window.hubCampaigns = [];
@@ -413,15 +413,7 @@
         window.draftBudgetPeriods = {};
         window.monthsOptions = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Q1", "Q2", "Q3", "Q4"];
 
-        // Exposing functions to global scope
-        window.saveCampaignToHub = saveCampaignToHub;
-        window.toggleLock = toggleLock;
-        window.deleteCampaign = deleteCampaign;
-        window.syncLibraryUpdate = syncLibraryUpdate;
-        window.updateHubField = updateHubField;
-        window.updateActualPeriodValue = updateActualPeriodValue;
-        
-        // FIX: Explicit assignment to window for HTML event visibility
+        // ATTACH FUNCTIONS TO WINDOW IMMEDIATELY (Fixing ReferenceErrors)
         window.updateHubPeriodView = function(id, key) {
             const c = window.hubCampaigns.find(x => x.id === id);
             if (c) {
@@ -429,6 +421,13 @@
                 renderCampaignHub();
             }
         };
+
+        window.saveCampaignToHub = saveCampaignToHub;
+        window.toggleLock = toggleLock;
+        window.deleteCampaign = deleteCampaign;
+        window.syncLibraryUpdate = syncLibraryUpdate;
+        window.updateHubField = updateHubField;
+        window.updateActualPeriodValue = updateActualPeriodValue;
 
         async function initCloudSync() {
             try {
@@ -487,7 +486,7 @@
         };
 
         async function saveCampaignToHub() {
-            const product = document.getElementById('input-product').value;
+            const productInput = document.getElementById('input-product').value;
             const vendor = document.getElementById('input-vendor').value;
             const name = document.getElementById('current-naming-display').innerText;
             const bmid = document.getElementById('summary-bmid').innerText;
@@ -496,21 +495,21 @@
             const month = document.getElementById('goal-month').value;
             const year = document.getElementById('goal-year').value;
             
-            const inclusion = getLibraryText(product, 'inclusion');
-            const exclusion = getLibraryText(product, 'exclusion');
+            const inclusion = getLibraryText(productInput, 'inclusion');
+            const exclusion = getLibraryText(productInput, 'exclusion');
 
             const key = `${year}-${month}`;
             const newGoalSet = {
                 budget: document.getElementById('budget-total').value || '10000',
                 spend: 0,
                 cpc: '-', cpm: '-', lto: '-',
-                goalCpc: document.getElementById('goal-cpc').value || '-',
-                goalCpm: document.getElementById('goal-cpm').value || '-',
-                goalLto: document.getElementById('goal-lto').value || '-'
+                goalCpc: document.getElementById('goal-cpc').value.replace(/[$,%]/g, '') || '-',
+                goalCpm: document.getElementById('goal-cpm').value.replace(/[$,%]/g, '') || '-',
+                goalLto: document.getElementById('goal-lto').value.replace(/[$,%]/g, '') || '-'
             };
 
-            // Registry Entry - Month, Year, Product, TCP L3 included
-            window.bmidRegistry.unshift({ date: new Date().toLocaleString(), month, year, product, name, bmid, vendor, tcpL1, tcpL3 });
+            // BMID Registry Logging
+            window.bmidRegistry.unshift({ date: new Date().toLocaleString(), month, year, product: productInput, name, bmid, vendor, tcpL1, tcpL3 });
 
             let existing = window.hubCampaigns.find(c => c.name === name && c.bmid === bmid);
             
@@ -521,12 +520,12 @@
                 existing.currentViewKey = key;
             } else {
                 const campaign = {
-                    id: Date.now(), status: 'Planning', locked: false, name, bmid, product, vendor, tcpL1, tcpL3,
+                    id: Date.now(), status: 'Planning', locked: false, name, bmid, product: productInput, vendor, tcpL1, tcpL3,
                     month: [month], year: year,
                     currentViewKey: key,
-                    introDate: document.getElementById('input-intro-date').value || '-',
-                    launchDate: document.getElementById('input-launch-date').value || '-',
-                    endDate: document.getElementById('input-end-date').value || '-',
+                    introDate: document.getElementById('input-intro-date')?.value || '-',
+                    launchDate: document.getElementById('input-launch-date')?.value || '-',
+                    endDate: document.getElementById('input-end-date')?.value || '-',
                     periods: { [key]: newGoalSet }, 
                     finalUrl: document.getElementById('final-url-display').innerText, 
                     inclusion, exclusion
@@ -543,6 +542,7 @@
             if(!container) return;
             container.innerHTML = `<div class="card overflow-hidden shadow-xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead class="bg-ocean text-white uppercase font-bold"><tr class="hub-header-text"><th class="p-4 border-r border-white/5 w-24">Assets</th><th class="p-4 border-r border-white/5 w-24">Copy</th><th class="p-4 w-12 text-center">Health</th><th class="p-4 w-16 text-center">Status</th><th class="p-4 text-center w-28 font-bold text-xs">Period</th><th class="p-4">Prod</th><th class="p-4 w-48 font-bold text-xs">Campaign Name</th><th class="p-4 font-bold text-xs">BMID</th><th class="p-4 w-40 font-bold text-xs">Inclusion (ICP)</th><th class="p-4 w-40 font-bold text-xs">Exclusion (ICP)</th><th class="p-4 bg-rc-blue/10">Budget (Σ)</th><th class="p-4 bg-green-600/10 text-green-900 font-bold">Actual (Σ)</th><th class="p-4 text-indigo-700 font-bold">Goal CPC</th><th class="p-4">Actual CPC</th><th class="p-4 text-indigo-700 font-bold">Goal CPM</th><th class="p-4">Actual CPM</th><th class="p-4 font-bold">Actual LtO</th><th class="p-4 text-center font-bold text-xs">Actions</th></tr></thead><tbody class="divide-y divide-[#eef2f6]" id="campaign-hub-body"></tbody></table></div></div>`;
             const body = document.getElementById('campaign-hub-body');
+            
             (window.hubCampaigns || []).forEach(c => {
                 if (!c.currentViewKey) c.currentViewKey = `${c.year}-${c.month[0]}`;
                 const activeData = c.periods?.[c.currentViewKey] || { budget: 0, spend: 0, cpc: '-', cpm: '-', lto: '-', goalCpc: '-', goalCpm: '-', goalLto: '-' };
@@ -579,19 +579,13 @@
             });
         }
 
-        window.updateHubPeriodView = function(id, key) {
-            const c = window.hubCampaigns.find(x => x.id === id);
-            if (c) {
-                c.currentViewKey = key;
-                renderCampaignHub();
-            }
-        };
-
         function toggleLock(id) { const c = window.hubCampaigns.find(x => x.id === id); if (c) { c.locked = !c.locked; renderCampaignHub(); syncToCloud(); } }
+        
         async function updateHubField(id, field, val) { 
             const c = window.hubCampaigns.find(x => x.id === id); 
             if (c) { c[field] = val; await syncToCloud(); } 
         }
+
         async function updateActualPeriodValue(id, field, val) { 
             const c = window.hubCampaigns.find(x => x.id === id); 
             if (!c || !c.currentViewKey) return; 
@@ -603,7 +597,9 @@
             renderCampaignHub();
             await syncToCloud(); 
         }
+
         function deleteCampaign(id) { if(confirm("Permanently delete documentation?")) { window.hubCampaigns = window.hubCampaigns.filter(x => x.id !== id); renderCampaignHub(); syncToCloud(); } }
+        
         function syncLibraryUpdate(product, field, text) { (window.hubCampaigns || []).forEach(c => { if (c.product === product) c[field] = text; }); syncToCloud(); }
         
         function renderRegistry() {
