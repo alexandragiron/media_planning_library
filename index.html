@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RingCentral Social Media Marketing Hub</title>
+    <!-- Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
@@ -26,11 +28,18 @@
         .hub-input { transition: all 0.2s; border: 1px solid #e5e7eb; font-size: 10px; padding: 2px 4px; border-radius: 4px; background: white; }
         .hub-input:focus { border-color: #0669ff !important; box-shadow: 0 0 0 2px rgba(6, 105, 255, 0.1); outline: none; }
 
+        .health-indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .health-good { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .health-warn { background-color: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+        .health-critical { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        #sync-indicator { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -41,11 +50,10 @@
             <div class="max-w-[1800px] mx-auto flex justify-between items-center">
                 <div>
                     <h1 class="text-xl font-bold">Social Media Marketing Hub</h1>
-                    <p class="text-blue-100 text-xs">Omni-Channel Strategy & Unified Performance Library</p>
+                    <p class="text-blue-100 text-xs">Unified Performance Library & Cloud Tracker</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-[10px] uppercase font-bold text-blue-200">Current Naming</p>
-                    <span class="text-xs font-mono bg-blue-800 px-2 py-0.5 rounded" id="current-naming-display">GENERATING...</span>
+                <div class="text-right" id="header-sync-info">
+                     <!-- Sync status indicator moved inside code logic -->
                 </div>
             </div>
         </header>
@@ -55,6 +63,7 @@
             <div class="max-w-[1800px] mx-auto flex px-6 overflow-x-auto whitespace-nowrap">
                 <button onclick="showTab('planner')" class="tab-btn active px-6 py-4 text-sm transition-all" id="btn-planner">Campaign Planner</button>
                 <button onclick="showTab('active-campaigns')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-active-campaigns">Campaign Summary Hub</button>
+                <button onclick="showTab('performance-visualizer')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-performance-visualizer">Performance Visualizer</button>
                 <button onclick="showTab('library')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-library">Audience & ICP Library</button>
                 <button onclick="showTab('creative')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-creative">Creative Requirements</button>
                 <button onclick="showTab('bmid-history')" class="tab-btn px-6 py-4 text-sm transition-all" id="btn-bmid-history">BMID Registry</button>
@@ -263,7 +272,11 @@
                                 </div>
                             </div>
 
-                            <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 space-y-2">
+                            <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-100 space-y-3">
+                                <div>
+                                    <p class="text-[9px] font-bold text-indigo-400 uppercase mb-1">Current Naming</p>
+                                    <p id="current-naming-display" class="text-[10px] font-mono text-indigo-700 break-all font-bold">GENERATING...</p>
+                                </div>
                                 <div>
                                     <p class="text-[9px] font-bold text-indigo-400 uppercase mb-1">Active BMID (Unique)</p>
                                     <p id="summary-bmid" class="text-[10px] font-mono text-indigo-700 break-all font-bold">---</p>
@@ -282,6 +295,25 @@
                 </div>
             </div>
 
+            <!-- TAB: PERFORMANCE VISUALIZER -->
+            <div id="tab-performance-visualizer" class="hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="card p-6">
+                        <h3 class="font-bold mb-4 text-indigo-700">Goal vs. Actual Spend (Σ)</h3>
+                        <div class="h-64">
+                            <canvas id="spendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="font-bold mb-4 text-indigo-700">Metric Efficiency (Actual CPC vs CPM)</h3>
+                        <div class="h-64">
+                            <canvas id="metricsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="visualizer-scorecards"></div>
+            </div>
+
             <!-- TAB: CAMPAIGN SUMMARY HUB -->
             <div id="tab-active-campaigns" class="hidden space-y-6">
                 <div class="flex flex-col md:flex-row justify-between items-end gap-4">
@@ -292,7 +324,11 @@
                     <div class="flex gap-2">
                          <select id="hub-month-filter" class="input-field py-1 text-xs w-40" onchange="renderCampaignHub()">
                              <option value="all">Filter Month/Q</option>
-                             ${monthsOptions.map(m => `<option value="${m}">${m}</option>`).join('')}
+                             <option value="January">January</option><option value="February">February</option><option value="March">March</option>
+                             <option value="April">April</option><option value="May">May</option><option value="June">June</option>
+                             <option value="July">July</option><option value="August">August</option><option value="September">September</option>
+                             <option value="October">October</option><option value="November">November</option><option value="December">December</option>
+                             <option value="Q1">Q1</option><option value="Q2">Q2</option><option value="Q3">Q3</option><option value="Q4">Q4</option>
                          </select>
                          <select id="hub-product-filter" class="input-field py-1 text-xs w-32" onchange="renderCampaignHub()">
                              <option value="all">Filter Product</option>
@@ -308,6 +344,7 @@
                                 <tr>
                                     <th class="p-2 bg-indigo-50 border-r border-indigo-100 w-24">Asset Link</th>
                                     <th class="p-2 bg-indigo-50 border-r border-indigo-100 w-24">Copy Link</th>
+                                    <th class="p-2 w-16 text-center">Health</th>
                                     <th class="p-2 w-16">Status</th>
                                     <th class="p-2 text-center w-24">Month(s)</th>
                                     <th class="p-2 text-center w-16">Year</th>
@@ -338,7 +375,7 @@
                 </div>
             </div>
 
-            <!-- TAB: AUDIENCE LIBRARY (MASTER SOP) -->
+            <!-- TAB: AUDIENCE LIBRARY -->
             <div id="tab-library" class="hidden space-y-6">
                 <h2 class="text-2xl font-bold">Audience & ICP Library (Master SOP)</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" id="audience-grid">
@@ -346,24 +383,24 @@
                         <h3 class="font-bold mb-2">REX: SOP</h3>
                         <div class="text-[10px]">
                             <p class="font-bold text-green-600 uppercase">Inclusion</p>
-                            <div id="sop-rex-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">IT Decision Makers, CIOs, CTOs. Interests: Unified Comms.</div>
+                            <div id="sop-rex-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">IT Decision Makers, CIOs, CTOs, IT Directors. Interest: Unified Communications.</div>
                             <p class="font-bold text-red-500 uppercase">Exclusion</p>
-                            <div id="sop-rex-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">Existing Users, Residential.</div>
+                            <div id="sop-rex-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">Existing REX Users, Non-business emails.</div>
                         </div>
                     </div>
                     <div class="audience-card card p-5 border-t-4 border-green-600" data-product="RCX">
                         <h3 class="font-bold mb-2">RCX: SOP</h3>
                         <div class="text-[10px]">
                             <p class="font-bold text-green-600 uppercase">Inclusion</p>
-                            <div id="sop-rcx-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">Customer Experience Leads, Support Heads.</div>
+                            <div id="sop-rcx-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">Customer Experience Managers, Support Heads, CX Directors.</div>
                             <p class="font-bold text-red-500 uppercase">Exclusion</p>
-                            <div id="sop-rcx-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">B2C roles.</div>
+                            <div id="sop-rcx-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">B2C roles, Retail helpdesk.</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- CREATIVE REQUIREMENTS -->
+            <!-- TAB: CREATIVE -->
             <div id="tab-creative" class="hidden space-y-6">
                 <h2 class="text-2xl font-bold">Creative Requirements Checklist</h2>
                 <div class="spec-grid">
@@ -390,25 +427,10 @@
                             <p><strong>Body Text:</strong> Optional but recommended</p>
                         </div>
                     </div>
-                    <div class="card p-5 border-l-4 border-red-500">
-                        <h3 class="font-bold text-red-600 uppercase text-[10px] tracking-widest mb-3">YouTube</h3>
-                        <div class="text-[10px] space-y-2" contenteditable="true">
-                            <p><strong>Short Headline:</strong> 15 chars</p>
-                            <p><strong>Long Headline:</strong> 90 chars</p>
-                            <p><strong>Description:</strong> 70 chars</p>
-                        </div>
-                    </div>
-                    <div class="card p-5 border-l-4 border-green-600">
-                        <h3 class="font-bold text-green-600 uppercase text-[10px] tracking-widest mb-3">DemandGen</h3>
-                        <div class="text-[10px] space-y-2" contenteditable="true">
-                            <p><strong>Headlines (up to 5):</strong> 40 chars each</p>
-                            <p><strong>Descriptions (up to 5):</strong> 90 chars each</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- BMID REGISTRY -->
+            <!-- BMID LOG -->
             <div id="tab-bmid-history" class="hidden space-y-6">
                 <h2 class="text-2xl font-bold">BMID Registry</h2>
                 <div class="card overflow-hidden">
@@ -424,37 +446,205 @@
         </main>
     </div>
 
-    <script>
-        let hubCampaigns = [];
-        let bmidRegistry = [];
-        let isLANEnabled = false;
-        let draftBudgetPeriods = {}; 
+    <!-- UI Notification system -->
+    <div id="notification-area" class="fixed top-4 right-4 space-y-2 z-[9999]"></div>
 
-        const monthsOptions = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Q1", "Q2", "Q3", "Q4"];
+    <!-- Cloud Sync Status Indicator -->
+    <div id="sync-indicator" class="text-[10px] bg-white border p-2 rounded shadow-lg text-gray-400">
+        Sync: <span id="sync-status">Initializing...</span>
+    </div>
 
-        function showTab(tabId) {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State
+        window.hubCampaigns = [];
+        window.bmidRegistry = [];
+        window.isLANEnabled = false;
+        window.draftBudgetPeriods = {};
+        window.monthsOptions = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Q1", "Q2", "Q3", "Q4"];
+
+        let db, auth, user;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'social-media-hub-master';
+
+        // Firebase Init
+        async function initCloudSync() {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (u) => {
+                    user = u;
+                    if (user) {
+                        document.getElementById('sync-status').innerText = "Connected";
+                        setupListeners();
+                    }
+                });
+            } catch (err) {
+                console.error("Sync init failed", err);
+                document.getElementById('sync-status').innerText = "Offline Mode";
+            }
+        }
+
+        function setupListeners() {
+            const publicDoc = doc(db, 'artifacts', appId, 'public', 'data', 'app_config', 'master_data');
+            onSnapshot(publicDoc, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    window.hubCampaigns = data.campaigns || [];
+                    window.bmidRegistry = data.registry || [];
+                    renderCampaignHub();
+                    renderRegistry();
+                    updateCharts();
+                }
+            }, (err) => console.error("Sync error:", err));
+        }
+
+        async function syncToCloud() {
+            if (!user) return;
+            document.getElementById('sync-status').innerText = "Syncing...";
+            try {
+                const publicDoc = doc(db, 'artifacts', appId, 'public', 'data', 'app_config', 'master_data');
+                await setDoc(publicDoc, {
+                    campaigns: window.hubCampaigns,
+                    registry: window.bmidRegistry,
+                    lastUpdated: new Date().toISOString()
+                });
+                document.getElementById('sync-status').innerText = "Saved";
+            } catch (err) {
+                console.error("Cloud save failed", err);
+                notify("Cloud save failed. Local changes kept.", "critical");
+            }
+        }
+
+        // Dashboard Visualizer
+        let spendChart, metricsChart;
+        function updateCharts() {
+            if (!spendChart) initCharts();
+            
+            const prodLabels = ["REX", "RCX", "AIR", "BuyOut"];
+            const goalSpend = prodLabels.map(p => 
+                window.hubCampaigns.filter(c => c.product === p)
+                    .reduce((sum, c) => {
+                        let b = 0;
+                        Object.values(c.periods).forEach(period => b += parseFloat(period.budget || 0));
+                        return sum + b;
+                    }, 0)
+            );
+
+            const actualSpend = prodLabels.map(p => 
+                window.hubCampaigns.filter(c => c.product === p)
+                    .reduce((sum, c) => {
+                        let s = 0;
+                        Object.values(c.periods).forEach(period => s += parseFloat(period.spend || 0));
+                        return sum + s;
+                    }, 0)
+            );
+
+            if (spendChart) {
+                spendChart.data.datasets[0].data = goalSpend;
+                spendChart.data.datasets[1].data = actualSpend;
+                spendChart.update();
+            }
+
+            const actualAvgCpc = prodLabels.map(p => {
+                const campaigns = window.hubCampaigns.filter(c => c.product === p);
+                let totalCpc = 0, count = 0;
+                campaigns.forEach(c => {
+                    Object.values(c.periods).forEach(p => {
+                        if (p.cpc !== '-' && p.cpc !== '0') {
+                            totalCpc += parseFloat(p.cpc);
+                            count++;
+                        }
+                    });
+                });
+                return count > 0 ? (totalCpc / count).toFixed(2) : 0;
+            });
+
+            if (metricsChart) {
+                metricsChart.data.datasets[0].data = actualAvgCpc;
+                metricsChart.update();
+            }
+        }
+
+        function initCharts() {
+            const spendCanvas = document.getElementById('spendChart');
+            if(spendCanvas) {
+                const spendCtx = spendCanvas.getContext('2d');
+                spendChart = new Chart(spendCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ["REX", "RCX", "AIR", "BuyOut"],
+                        datasets: [
+                            { label: 'Planned Budget', data: [], backgroundColor: 'rgba(6, 105, 255, 0.2)', borderColor: '#0669ff', borderWidth: 1 },
+                            { label: 'Actual Spend', data: [], backgroundColor: 'rgba(16, 185, 129, 0.6)', borderColor: '#10b981', borderWidth: 1 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const metricCanvas = document.getElementById('metricsChart');
+            if(metricCanvas) {
+                const metricCtx = metricCanvas.getContext('2d');
+                metricsChart = new Chart(metricCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ["REX", "RCX", "AIR", "BuyOut"],
+                        datasets: [{ label: 'Avg Actual CPC ($)', data: [], borderColor: '#0669ff', fill: false, tension: 0.1 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        // Exposed global functions
+        window.notify = (msg, type = "good") => {
+            const area = document.getElementById('notification-area');
+            const toast = document.createElement('div');
+            toast.className = `p-3 rounded-lg text-white text-xs font-bold shadow-lg transform transition-all duration-300 translate-x-full ${type === 'good' ? 'bg-green-500' : 'bg-red-500'}`;
+            toast.innerText = msg;
+            area.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-x-full'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        };
+
+        window.showTab = (tabId) => {
             document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
             document.getElementById('btn-' + tabId).classList.add('active');
             if (tabId === 'active-campaigns') renderCampaignHub();
-            if (tabId === 'bmid-history') renderRegistry();
-        }
+            if (tabId === 'performance-visualizer') updateCharts();
+        };
 
-        function handleVendorChange() {
+        window.handleVendorChange = () => {
             const v = document.getElementById('input-vendor').value;
             const lan = document.getElementById('lan-container');
             if (v === 'LinkedIn') lan.classList.remove('hidden');
-            else { lan.classList.add('hidden'); isLANEnabled = false; updateLANUI(); }
+            else { lan.classList.add('hidden'); window.isLANEnabled = false; updateLANUI(); }
             updateNaming();
-        }
+        };
 
-        function toggleLAN() { isLANEnabled = !isLANEnabled; updateLANUI(); updateNaming(); }
+        window.toggleLAN = () => { window.isLANEnabled = !window.isLANEnabled; updateLANUI(); updateNaming(); };
 
         function updateLANUI() {
             const btn = document.getElementById('btn-lan');
             const dot = document.getElementById('lan-dot');
-            if (isLANEnabled) {
+            if (window.isLANEnabled) {
                 btn.classList.add('border-blue-600', 'bg-blue-50', 'text-blue-700');
                 dot.classList.add('bg-blue-600'); dot.classList.remove('bg-gray-400');
             } else {
@@ -463,35 +653,34 @@
             }
         }
 
-        function loadDraftBudget() {
+        window.loadDraftBudget = () => {
             const year = document.getElementById('goal-year').value;
             const month = document.getElementById('goal-month').value;
             const key = `${year}-${month}`;
-            document.getElementById('budget-total').value = draftBudgetPeriods[key] || "10000";
-        }
+            document.getElementById('budget-total').value = window.draftBudgetPeriods[key] || "10000";
+        };
 
-        function saveDraftBudget() {
+        window.saveDraftBudget = () => {
             const year = document.getElementById('goal-year').value;
             const month = document.getElementById('goal-month').value;
             const key = `${year}-${month}`;
-            draftBudgetPeriods[key] = document.getElementById('budget-total').value;
-        }
+            window.draftBudgetPeriods[key] = document.getElementById('budget-total').value;
+        };
 
         function generateUniqueBMID(prd, vnd) {
-            const ps = "PS";
             const now = new Date();
             const nowStr = now.toISOString().slice(0,10).replace(/-/g,'');
             let bmid = "";
             let isUnique = false;
             while (!isUnique) {
                 const rand = Math.floor(Math.random() * 9999999999) + 1;
-                bmid = `${prd}${ps}${vnd}${nowStr}${rand.toString().padStart(10,'0')}`.toUpperCase().substring(0, 31);
-                if (!bmidRegistry.some(r => r.bmid === bmid)) isUnique = true;
+                bmid = `${prd}PS${vnd}${nowStr}${rand.toString().padStart(10,'0')}`.toUpperCase().substring(0, 31);
+                if (!window.bmidRegistry.some(r => r.bmid === bmid)) isUnique = true;
             }
             return bmid;
         }
 
-        function updateNaming() {
+        window.updateNaming = () => {
             const locEl = document.getElementById('input-location');
             if(!locEl) return;
             const dat = document.getElementById('input-launch-date').value;
@@ -504,19 +693,22 @@
             let parts = [locEl.value, document.getElementById('input-objective').value, document.getElementById('input-stage').value, vnd, prd, document.getElementById('input-objdetail').value];
             if (document.getElementById('input-industry').value) parts.push(document.getElementById('input-industry').value);
             parts.push(document.getElementById('input-bizsize').value, document.getElementById('input-mediaobj').value, document.getElementById('input-adtype').value, dateStr);
-            if (isLANEnabled) parts.push('LAN');
+            if (window.isLANEnabled) parts.push('LAN');
             const suf = document.getElementById('input-suffix').value.trim().replace(/\s+/g, '_');
             if (suf) parts.push(suf);
 
             const result = parts.join('_').toUpperCase().substring(0, 80);
-            document.getElementById('current-naming-display').innerText = result;
+            
+            // UI Updates - Both Naming Preview and Goal Summary Name
+            const nameDisplays = document.querySelectorAll('#current-naming-display');
+            nameDisplays.forEach(el => el.innerText = result);
 
             const bmid = generateUniqueBMID(prd, vnd);
             document.getElementById('summary-bmid').innerText = bmid;
             updateFinalURL();
-        }
+        };
 
-        function updateFinalURL() {
+        window.updateFinalURL = () => {
             const dest = document.getElementById('destination-url').value;
             const bmid = document.getElementById('summary-bmid').innerText;
             const display = document.getElementById('final-url-display');
@@ -524,16 +716,15 @@
                 const sep = dest.includes('?') ? '&' : '?';
                 display.innerText = `${dest}${sep}BMID=${bmid}`;
             } else { display.innerText = "---"; }
-        }
+        };
 
-        function saveCampaignToHub() {
+        window.saveCampaignToHub = async () => {
             const product = document.getElementById('input-product').value;
             const vendor = document.getElementById('input-vendor').value;
             const name = document.getElementById('current-naming-display').innerText;
             const bmid = document.getElementById('summary-bmid').innerText;
             
-            // --- AUTOMATIC BMID REGISTRY ENTRY ---
-            bmidRegistry.unshift({ date: new Date().toLocaleString(), name, bmid, vendor });
+            window.bmidRegistry.unshift({ date: new Date().toLocaleString(), name, bmid, vendor });
 
             const incId = `sop-${product.toLowerCase()}-inc`;
             const excId = `sop-${product.toLowerCase()}-exc`;
@@ -560,30 +751,31 @@
                 inclusion, exclusion
             };
 
-            Object.keys(draftBudgetPeriods).forEach(k => {
-                campaign.periods[k] = { budget: draftBudgetPeriods[k], spend: 0, cpc: '-', cpm: '-', lto: '-' };
+            Object.keys(window.draftBudgetPeriods).forEach(k => {
+                campaign.periods[k] = { budget: window.draftBudgetPeriods[k], spend: 0, cpc: '-', cpm: '-', lto: '-' };
             });
 
-            hubCampaigns.unshift(campaign);
+            window.hubCampaigns.unshift(campaign);
             resetPlanner();
-            renderRegistry(); // Ensure Registry UI is ready
-            alert(`SUCCESS: Campaign logged to Hub & BMID [${bmid}] registered in Registry tab.`);
-        }
+            await syncToCloud();
+            notify(`SUCCESS: Campaign logged & BMID [${bmid}] registered.`);
+        };
 
         function resetPlanner() {
             const fields = ["input-intro-date", "input-launch-date", "input-end-date", "input-suffix", "destination-url", "goal-cpm", "goal-cpc", "goal-lto", "budget-total"];
-            fields.forEach(id => document.getElementById(id).value = "");
-            draftBudgetPeriods = {};
-            isLANEnabled = false; updateLANUI(); updateNaming();
+            fields.forEach(id => { const el = document.getElementById(id); if(el) el.value = ""; });
+            window.draftBudgetPeriods = {};
+            window.isLANEnabled = false; updateLANUI(); updateNaming();
         }
 
-        function renderCampaignHub() {
+        window.renderCampaignHub = () => {
             const body = document.getElementById('campaign-hub-body');
+            if(!body) return;
             const pF = document.getElementById('hub-product-filter').value;
             const mF = document.getElementById('hub-month-filter').value;
             body.innerHTML = '';
             
-            const filtered = hubCampaigns.filter(c => (pF==='all'||c.product===pF) && (mF==='all'||c.month.includes(mF)));
+            const filtered = window.hubCampaigns.filter(c => (pF==='all'||c.product===pF) && (mF==='all'||c.month.includes(mF)));
 
             filtered.forEach(c => {
                 let actualSpend = 0, totalBudget = 0, actuals = { cpc: '-', cpm: '-', lto: '-' };
@@ -596,11 +788,19 @@
                     }
                 });
 
+                let healthClass = "health-good";
+                if(totalBudget > 0) {
+                    const variance = actualSpend / totalBudget;
+                    if (variance > 1.1 || variance < 0.75) healthClass = "health-warn";
+                    if (variance > 1.25) healthClass = "health-critical";
+                }
+
                 const row = document.createElement('tr');
-                row.className = "hover:bg-gray-50 transition-all";
+                row.className = "hover:bg-gray-50 transition-all text-[9px]";
                 row.innerHTML = `
                     <td class="p-2 border-r border-indigo-100"><input type="text" value="${c.assetLink}" class="hub-input w-full" onchange="updateHubField(${c.id}, 'assetLink', this.value)"></td>
                     <td class="p-2 border-r border-indigo-100"><input type="text" value="${c.copyLink}" class="hub-input w-full" onchange="updateHubField(${c.id}, 'copyLink', this.value)"></td>
+                    <td class="p-3 text-center"><div class="health-indicator ${healthClass}"></div></td>
                     <td class="p-2">
                         <select onchange="updateHubField(${c.id}, 'status', this.value)" class="hub-input font-bold ${c.status==='Active'?'text-green-600':(c.status==='Blocked'?'text-red-600':'text-gray-500')}">
                             <option value="Planned" ${c.status==='Planned'?'selected':''}>Planned</option>
@@ -610,64 +810,93 @@
                     </td>
                     <td class="p-2">
                         <select multiple class="text-[8px] border rounded w-full h-8" onchange="updateHubMultiMonth(${c.id}, this)">
-                            ${monthsOptions.map(m => `<option value="${m}" ${c.month.includes(m)?'selected':''}>${m}</option>`).join('')}
+                            ${window.monthsOptions.map(m => `<option value="${m}" ${c.month.includes(m)?'selected':''}>${m}</option>`).join('')}
                         </select>
                     </td>
                     <td class="p-2"><input type="number" value="${c.year}" class="hub-input w-12 text-center" onchange="updateHubField(${c.id}, 'year', this.value)"></td>
-                    <td class="p-2 text-[9px] text-gray-400 font-mono text-center">${c.introDate}</td>
-                    <td class="p-2 text-[9px] text-indigo-600 font-bold font-mono text-center">${c.launchDate}</td>
-                    <td class="p-2 text-[9px] text-gray-400 font-mono text-center">${c.endDate}</td>
+                    <td class="p-2 text-gray-400 font-mono text-center">${c.introDate}</td>
+                    <td class="p-2 text-indigo-600 font-bold font-mono text-center">${c.launchDate}</td>
+                    <td class="p-2 text-gray-400 font-mono text-center">${c.endDate}</td>
                     <td class="p-2 font-bold text-indigo-700">${c.product}</td>
                     <td class="p-2 font-bold text-gray-600 text-[10px]">${c.vendor}</td>
-                    <td class="p-2 w-32 font-bold text-[9px] leading-tight break-all">${c.name}</td>
-                    <td class="p-2 font-mono text-[9px] text-indigo-400">${c.bmid}</td>
-                    <td class="p-2"><div contenteditable="true" class="p-1 bg-gray-50 text-[9px] min-h-[24px] rounded border" onblur="updateHubField(${c.id}, 'inclusion', this.innerText)">${c.inclusion}</div></td>
-                    <td class="p-2"><div contenteditable="true" class="p-1 bg-gray-50 text-[9px] min-h-[24px] rounded border" onblur="updateHubField(${c.id}, 'exclusion', this.innerText)">${c.exclusion}</div></td>
-                    <td class="p-2 font-bold text-[9px] bg-blue-50">$${totalBudget.toLocaleString()}</td>
+                    <td class="p-2 w-32 font-bold text-gray-800 leading-tight break-all">${c.name}</td>
+                    <td class="p-2 font-mono text-indigo-400">${c.bmid}</td>
+                    <td class="p-2"><div contenteditable="true" class="p-1 bg-gray-50 min-h-[24px] rounded border" onblur="updateHubField(${c.id}, 'inclusion', this.innerText)">${c.inclusion}</div></td>
+                    <td class="p-2"><div contenteditable="true" class="p-1 bg-gray-50 min-h-[24px] rounded border" onblur="updateHubField(${c.id}, 'exclusion', this.innerText)">${c.exclusion}</div></td>
+                    <td class="p-2 font-bold bg-blue-50">$${totalBudget.toLocaleString()}</td>
                     <td class="p-2 bg-green-50">
                         <input type="text" value="${actualSpend || 0}" class="hub-input w-16 font-bold text-green-700" ${c.month.length > 1 ? 'readonly' : `onchange="updateActualPeriodValue(${c.id}, 'spend', this.value)"`}>
                     </td>
-                    <td class="p-2 text-indigo-700 font-bold text-[9px]">${c.goals.cpc}</td>
-                    <td class="p-2 bg-blue-50 text-[9px]"><input type="text" value="${actuals.cpc}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'cpc', this.value)"`}></td>
-                    <td class="p-2 text-indigo-700 font-bold text-[9px]">${c.goals.cpm}</td>
-                    <td class="p-2 bg-blue-50 text-[9px]"><input type="text" value="${actuals.cpm}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'cpm', this.value)"`}></td>
-                    <td class="p-2 text-gray-400 font-bold text-[9px]">${c.goals.lto}</td>
-                    <td class="p-2 bg-blue-50 text-[9px]"><input type="text" value="${actuals.lto}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'lto', this.value)"`}></td>
+                    <td class="p-2 text-indigo-700 font-bold">${c.goals.cpc}</td>
+                    <td class="p-2 bg-blue-50"><input type="text" value="${actuals.cpc}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'cpc', this.value)"`}></td>
+                    <td class="p-2 text-indigo-700 font-bold">${c.goals.cpm}</td>
+                    <td class="p-2 bg-blue-50"><input type="text" value="${actuals.cpm}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'cpm', this.value)"`}></td>
+                    <td class="p-2 text-gray-400 font-bold">${c.goals.lto}</td>
+                    <td class="p-2 bg-blue-50"><input type="text" value="${actuals.lto}" class="hub-input w-10" ${c.month.length > 1 ? 'disabled' : `onchange="updateActualPeriodValue(${c.id}, 'lto', this.value)"`}></td>
                     <td class="p-2 w-32 text-[8px] text-blue-600 break-all italic">${c.finalUrl}</td>
                     <td class="p-2 text-center"><button onclick="deleteCampaign(${c.id})" class="text-red-400 font-bold">×</button></td>
                 `;
                 body.appendChild(row);
             });
-        }
+        };
 
-        function updateActualPeriodValue(id, field, val) {
-            const c = hubCampaigns.find(x => x.id === id);
+        window.updateActualPeriodValue = async (id, field, val) => {
+            const c = window.hubCampaigns.find(x => x.id === id);
             if (!c || c.month.length !== 1) return;
             const key = `${c.year}-${c.month[0]}`;
             if (!c.periods[key]) c.periods[key] = { budget: 0, spend: 0, cpc: '-', cpm: '-', lto: '-' };
             c.periods[key][field] = val;
             renderCampaignHub();
-        }
+            await syncToCloud();
+        };
 
-        function updateHubMultiMonth(id, select) {
-            const c = hubCampaigns.find(x => x.id === id);
+        window.updateHubMultiMonth = (id, select) => {
+            const c = window.hubCampaigns.find(x => x.id === id);
             if (c) { c.month = Array.from(select.selectedOptions).map(o => o.value); renderCampaignHub(); }
-        }
+        };
 
-        function updateHubField(id, field, val) { const c = hubCampaigns.find(x => x.id === id); if (c) { c[field] = val; renderCampaignHub(); } }
-        function deleteCampaign(id) { if(confirm("Delete row?")) { hubCampaigns = hubCampaigns.filter(x => x.id !== id); renderCampaignHub(); } }
+        window.updateHubField = async (id, field, val) => { 
+            const c = window.hubCampaigns.find(x => x.id === id); 
+            if (c) { 
+                c[field] = val; 
+                renderCampaignHub(); 
+                await syncToCloud();
+            } 
+        };
 
-        function renderRegistry() {
+        window.deleteCampaign = async (id) => { 
+            if(confirm("Delete row?")) { 
+                window.hubCampaigns = window.hubCampaigns.filter(x => x.id !== id); 
+                renderCampaignHub(); 
+                await syncToCloud();
+            } 
+        };
+
+        window.renderRegistry = () => {
             const body = document.getElementById('registry-body');
+            if(!body) return;
             body.innerHTML = '';
-            bmidRegistry.forEach(item => {
+            window.bmidRegistry.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `<td class="p-4 text-xs text-gray-400">${item.date}</td><td class="p-4 font-bold text-gray-700 text-xs">${item.name}</td><td class="p-4 font-mono text-indigo-600 text-xs">${item.bmid}</td><td class="p-4 text-xs font-semibold">${item.vendor}</td>`;
                 body.appendChild(row);
             });
-        }
+        };
 
-        window.onload = () => { updateNaming(); };
+        window.filterLibrary = () => {
+            const prd = document.getElementById('lib-product-filter').value;
+            document.querySelectorAll('.audience-card').forEach(c => {
+                if (prd === 'all' || c.dataset.product === prd) c.classList.remove('hidden');
+                else c.classList.add('hidden');
+            });
+        };
+
+        // Initialize App
+        window.addEventListener('load', () => {
+            initCloudSync();
+            window.updateNaming();
+        });
+
     </script>
 </body>
 </html>
