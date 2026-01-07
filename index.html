@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Inter+Tight:wght@300;400;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .rc-indigo { background-color: #0669ff; }
         .rc-indigo-text { color: #0669ff; }
@@ -33,6 +33,18 @@
         .health-warn { background-color: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
         .health-critical { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
+        /* --- STRENGTHENED AUDIENCE & ICP LIBRARY FONT RULES (NO ITALICS) --- */
+        #tab-library, #tab-library * { 
+            font-family: 'Inter Tight', sans-serif !important; 
+            font-size: 11px !important; 
+            line-height: 1.5 !important;
+            font-style: normal !important; /* Force upright font */
+        }
+        /* Ensure headers stay bold but keep the size */
+        #tab-library h2, #tab-library h3, #tab-library .font-bold { 
+            font-weight: 700 !important; 
+        }
+
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -52,9 +64,7 @@
                     <h1 class="text-xl font-bold">Social Media Marketing Hub</h1>
                     <p class="text-blue-100 text-xs">Unified Performance Library & Cloud Tracker</p>
                 </div>
-                <div class="text-right" id="header-sync-info">
-                     <!-- Sync status indicator moved inside code logic -->
-                </div>
+                <div class="text-right" id="header-sync-info"></div>
             </div>
         </header>
 
@@ -383,18 +393,36 @@
                         <h3 class="font-bold mb-2">REX: SOP</h3>
                         <div class="text-[10px]">
                             <p class="font-bold text-green-600 uppercase">Inclusion</p>
-                            <div id="sop-rex-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">IT Decision Makers, CIOs, CTOs, IT Directors. Interest: Unified Communications.</div>
+                            <div id="sop-rex-inc" contenteditable="true" class="p-2 bg-gray-50 rounded mb-2">IT Decision Makers, CIOs, CTOs, IT Directors. Interest: Unified Communications.</div>
                             <p class="font-bold text-red-500 uppercase">Exclusion</p>
-                            <div id="sop-rex-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">Existing REX Users, Non-business emails.</div>
+                            <div id="sop-rex-exc" contenteditable="true" class="p-2 bg-gray-50 rounded">Existing REX Users, Non-business emails.</div>
                         </div>
                     </div>
                     <div class="audience-card card p-5 border-t-4 border-green-600" data-product="RCX">
                         <h3 class="font-bold mb-2">RCX: SOP</h3>
                         <div class="text-[10px]">
                             <p class="font-bold text-green-600 uppercase">Inclusion</p>
-                            <div id="sop-rcx-inc" contenteditable="true" class="p-2 bg-gray-50 rounded italic mb-2">Customer Experience Managers, Support Heads, CX Directors.</div>
+                            <div id="sop-rcx-inc" contenteditable="true" class="p-2 bg-gray-50 rounded mb-2">Customer Experience Managers, Support Heads, CX Directors.</div>
                             <p class="font-bold text-red-500 uppercase">Exclusion</p>
-                            <div id="sop-rcx-exc" contenteditable="true" class="p-2 bg-gray-50 rounded italic">B2C roles, Retail helpdesk.</div>
+                            <div id="sop-rcx-exc" contenteditable="true" class="p-2 bg-gray-50 rounded">B2C roles, Retail helpdesk.</div>
+                        </div>
+                    </div>
+                    <div class="audience-card card p-5 border-t-4 border-purple-600" data-product="AIR">
+                        <h3 class="font-bold mb-2">AIR: SOP</h3>
+                        <div class="text-[10px]">
+                            <p class="font-bold text-green-600 uppercase">Inclusion</p>
+                            <div id="sop-air-inc" contenteditable="true" class="p-2 bg-gray-50 rounded mb-2">Sales Enablement, RevOps, Sales Directors. Interest: Conversation AI.</div>
+                            <p class="font-bold text-red-500 uppercase">Exclusion</p>
+                            <div id="sop-air-exc" contenteditable="true" class="p-2 bg-gray-50 rounded">Marketing, PR roles.</div>
+                        </div>
+                    </div>
+                    <div class="audience-card card p-5 border-t-4 border-gray-600" data-product="BuyOut">
+                        <h3 class="font-bold mb-2">BuyOut: SOP</h3>
+                        <div class="text-[10px]">
+                            <p class="font-bold text-green-600 uppercase">Inclusion</p>
+                            <div id="sop-buyout-inc" contenteditable="true" class="p-2 bg-gray-50 rounded mb-2">Contract ends in 6mo, Competitor users (Zoom/8x8).</div>
+                            <p class="font-bold text-red-500 uppercase">Exclusion</p>
+                            <div id="sop-buyout-exc" contenteditable="true" class="p-2 bg-gray-50 rounded">Brand new customers.</div>
                         </div>
                     </div>
                 </div>
@@ -434,7 +462,6 @@
                         <div class="text-[10px] space-y-2" contenteditable="true">
                             <p><strong>Headline:</strong> Max 300 chars</p>
                             <p><strong>Body Text:</strong> Optional but recommended</p>
-                            <p><strong>CTA:</strong> Button required</p>
                         </div>
                     </div>
                     <div class="card p-5 border-l-4 border-green-600">
@@ -746,7 +773,8 @@
         window.saveCampaignToHub = async () => {
             const product = document.getElementById('input-product').value;
             const vendor = document.getElementById('input-vendor').value;
-            const name = document.getElementById('current-naming-display').innerText;
+            const nameEl = document.getElementById('current-naming-display');
+            const name = nameEl.innerText;
             const bmid = document.getElementById('summary-bmid').innerText;
             
             window.bmidRegistry.unshift({ date: new Date().toLocaleString(), name, bmid, vendor });
