@@ -222,7 +222,7 @@
                 nLim.className = `limit-pill ${result.length >= 75 ? 'limit-warn' : 'limit-ok'}`;
             }
 
-            // BMID Logic
+            // BMID Remains standard ID uppercase
             let prefix = (type === "OLV" || type === "CTV") ? type : "PS";
             const tsStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
             const randVal = Math.floor(Math.random() * 1000) + 1;
@@ -262,7 +262,6 @@
             <div class="max-w-[1800px] mx-auto flex px-8 space-x-2 overflow-x-auto whitespace-nowrap">
                 <button onclick="showTab('planner')" class="tab-btn active text-sm" id="btn-planner">Campaign Planner</button>
                 <button onclick="showTab('active-campaigns')" class="tab-btn text-sm" id="btn-active-campaigns">Summary Hub</button>
-                <button onclick="showTab('performance-visualizer')" class="tab-btn text-sm" id="btn-performance-visualizer">Analytics Dashboard</button>
                 <button onclick="showTab('library')" class="tab-btn text-sm" id="btn-library">Audience Library</button>
                 <button onclick="showTab('creative')" class="tab-btn text-sm" id="btn-creative">Creative Specs</button>
                 <button onclick="showTab('bmid-history')" class="tab-btn text-sm" id="btn-bmid-history">BMID Registry</button>
@@ -299,7 +298,7 @@
                     </div>
                 </div>
 
-                <!-- Tile 2: Campaign Lifecycle -->
+                <!-- Tile 2: Campaign Lifecycle (Restored) -->
                 <div class="card p-8 border-l-4 border-rc-blue opacity-90">
                     <h2 class="text-lg font-bold mb-6 flex items-center text-ocean"><svg class="w-5 h-5 mr-2 text-rc-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Campaign Lifecycle</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
@@ -395,7 +394,7 @@
                 </div>
             </div>
 
-            <!-- TAB: CREATIVE SPECS -->
+            <!-- TAB: CREATIVE (Restored) -->
             <div id="tab-creative" class="hidden space-y-8">
                 <h2 class="text-3xl font-bold text-ocean">Creative Specifications & Media Assets</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -484,7 +483,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Handshake Setup
+        // Firebase Initialization
         let db, auth, user;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'rc-marketing-hub-final-v10';
 
@@ -494,7 +493,7 @@
         window.draftBudgetPeriods = {};
         window.monthsOptions = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Q1", "Q2", "Q3", "Q4"];
 
-        // ATTACH FUNCTIONS TO WINDOW IMMEDIATELY
+        // FIXED: Explicit window attachment for global functions
         window.updateHubPeriodView = function(id, key) {
             const c = window.hubCampaigns.find(x => x.id === id);
             if (c) {
@@ -589,9 +588,23 @@
                 goalLto: document.getElementById('goal-lto').value.replace(/[$,%]/g, '') || '-'
             };
 
-            // Registry Entry - All requested columns
-            window.bmidRegistry.unshift({ date: new Date().toLocaleString(), month, year, product: productInput, name, bmid, vendor, tcpL1, tcpL3 });
+            // REGISTRY LOGIC: Prevent duplicates and maintain original Date Logged
+            let existingInRegistry = window.bmidRegistry.find(r => r.bmid === bmid);
+            if (!existingInRegistry) {
+                window.bmidRegistry.unshift({ 
+                    date: new Date().toLocaleString(), 
+                    month, 
+                    year, 
+                    product: productInput, 
+                    name, 
+                    bmid, 
+                    vendor, 
+                    tcpL1, 
+                    tcpL3 
+                });
+            }
 
+            // HUB CAMPAIGN MERGE LOGIC
             let existing = window.hubCampaigns.find(c => c.name === name && c.bmid === bmid);
             
             if (existing) {
