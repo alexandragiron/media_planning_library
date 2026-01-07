@@ -29,7 +29,6 @@
         .bg-ocean { background-color: var(--ocean-blue); }
         .bg-rc-blue { background-color: var(--rc-blue); }
         .text-rc-blue { color: var(--rc-blue); }
-        .text-warm-black { color: var(--warm-black); }
         
         .btn-primary { 
             background-color: var(--rc-orange); 
@@ -56,11 +55,6 @@
             color: var(--warm-black);
             background-color: #ffffff;
         }
-        .input-field:focus { 
-            border-color: var(--rc-blue); 
-            outline: none; 
-            box-shadow: 0 0 0 3px rgba(6, 105, 255, 0.1); 
-        }
 
         .tab-btn {
             font-weight: 600;
@@ -79,13 +73,6 @@
             height: 4px;
             background: var(--rc-blue);
             border-radius: 4px 4px 0 0;
-        }
-
-        #tab-library, #tab-library * { 
-            font-family: 'Inter Tight', sans-serif !important; 
-            font-size: 11px !important; 
-            line-height: 1.6 !important;
-            font-style: normal !important; 
         }
 
         .label-documentation {
@@ -117,14 +104,12 @@
 
         .limit-pill { font-size: 10px; padding: 2px 6px; border-radius: 999px; font-weight: bold; }
         .limit-ok { background: #f1f5f9; color: #64748b; }
-        .limit-warn { background: #fee2e2; color: #ef4444; }
 
         .row-locked { background-color: #f8fafc; opacity: 0.8; }
         .locked-field { pointer-events: none !important; background-color: #f1f5f9 !important; color: #94a3b8 !important; }
 
         .health-indicator { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .health-good { background-color: #10b981; }
-        .health-warn { background-color: #f59e0b; }
         .health-critical { background-color: #ef4444; }
 
         .priority-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: #e0f2fe; color: #0369a1; font-weight: 800; text-transform: uppercase; margin-left: 6px;}
@@ -138,7 +123,7 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
     </style>
     <script>
-        // GLOBAL SCOPE UI Functions available immediately
+        // GLOBAL FUNCTIONS
         window.showTab = function(id) {
             document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -187,7 +172,7 @@
             const stg = document.getElementById('input-stage')?.value || '';
             const vendor = document.getElementById('input-vendor')?.value || '';
             const product = document.getElementById('input-product')?.value || '';
-            const promo = document.getElementById('input-promo')?.value.trim().replace(/\s+/g, '') || '';
+            const promo = document.getElementById('input-promo')?.value.trim() || '';
             const detail = document.getElementById('input-objdetail')?.value || '';
             const dateRef = document.getElementById('input-date')?.value || '';
 
@@ -197,9 +182,6 @@
                 dateStr = parts[1] + parts[0].substring(2); 
             }
 
-            // SEGMENT FORMATTING RULES:
-            // Location, General Objective, Stage, and Product: ALL CAPS
-            // Others: Title Case
             const formattedParts = [
                 type.charAt(0).toUpperCase() + type.slice(1).toLowerCase(), // Type: Title Case
                 loc.toUpperCase(), // Location: ALL CAPS
@@ -209,7 +191,7 @@
                 product.toUpperCase() // Product: ALL CAPS
             ];
             
-            if (promo) formattedParts.push(promo.charAt(0).toUpperCase() + promo.slice(1));
+            if (promo) formattedParts.push(promo.charAt(0).toUpperCase() + promo.slice(1).toLowerCase());
             formattedParts.push(detail.charAt(0).toUpperCase() + detail.slice(1).toLowerCase(), dateStr);
 
             const result = formattedParts.join('_').substring(0, 80);
@@ -219,10 +201,10 @@
             const nLim = document.getElementById('name-limit-pill');
             if (nLim) {
                 nLim.innerText = `${result.length} / 80`;
-                nLim.className = `limit-pill ${result.length >= 75 ? 'limit-warn' : 'limit-ok'}`;
+                nLim.className = `limit-pill ${result.length >= 75 ? 'text-red-500' : 'limit-ok'}`;
             }
 
-            // BMID Remains standard ID uppercase
+            // BMID Logic (Uppercase standard)
             let prefix = (type === "OLV" || type === "CTV") ? type : "PS";
             const tsStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
             const randVal = Math.floor(Math.random() * 1000) + 1;
@@ -231,12 +213,6 @@
             
             const bDisplay = document.getElementById('summary-bmid');
             if (bDisplay) bDisplay.innerText = bmidResult;
-            
-            const bLim = document.getElementById('bmid-limit-pill');
-            if (bLim) {
-                bLim.innerText = `${bmidResult.length} / 31`;
-                bLim.className = `limit-pill ${bmidResult.length >= 30 ? 'limit-warn' : 'limit-ok'}`;
-            }
             window.updateFinalURL();
         };
 
@@ -272,7 +248,7 @@
 
             <!-- TAB: PLANNER -->
             <div id="tab-planner" class="space-y-8">
-                <!-- Tile 1: Configuration -->
+                <!-- Configuration Tile -->
                 <div class="card p-8 border-t-4 border-rc-blue shadow-sm">
                     <div class="flex items-center justify-between mb-8">
                         <h2 class="text-lg font-bold flex items-center text-ocean">
@@ -308,13 +284,13 @@
                     </div>
                 </div>
 
-                <!-- Tile 3: Strategic Tracking -->
+                <!-- Tile 3: Strategic Previews -->
                 <div class="card p-8 border-l-4 border-rc-blue shadow-lg">
                     <h2 class="text-lg font-bold mb-8 text-ocean flex items-center"><svg class="w-5 h-5 mr-2 text-rc-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>Strategic Identifiers & Tracking</h2>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                         <div class="space-y-8">
                             <div><div class="flex justify-between items-center mb-2"><label class="label-strategic">Campaign Naming Preview</label><span id="name-limit-pill" class="limit-pill limit-ok">0 / 80</span></div><div class="bg-gray-50 p-4 rounded-xl border border-gray-100 preview-text text-ocean font-bold" id="current-naming-display">GENERATING...</div></div>
-                            <div><div class="flex justify-between items-center mb-2"><label class="label-strategic">Active BMID (Unique)</label><span id="bmid-limit-pill" class="limit-pill limit-ok">0 / 31</span></div><div class="bg-blue-50 p-4 rounded-xl border border-blue-100 preview-text text-rc-blue font-bold" id="summary-bmid">---</div></div>
+                            <div><div class="flex justify-between items-center mb-2"><label class="label-strategic">Active BMID (Unique)</label></div><div class="bg-blue-50 p-4 rounded-xl border border-blue-100 preview-text text-rc-blue font-bold" id="summary-bmid">---</div></div>
                         </div>
                         <div class="space-y-6">
                             <div class="grid grid-cols-2 gap-4">
@@ -333,7 +309,7 @@
                     </div>
                 </div>
 
-                <!-- Tile 4: Goal Summary -->
+                <!-- Tile 4: Goal Entry -->
                 <div class="card p-8 border-l-4 border-rc-blue">
                     <h2 class="text-lg font-bold mb-6 text-ocean flex items-center"><svg class="w-5 h-5 mr-2 text-rc-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>Goal Summary</h2>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -354,41 +330,34 @@
             <!-- TAB: SUMMARY HUB -->
             <div id="tab-active-campaigns" class="hidden space-y-6">
                 <div class="flex justify-between items-end mb-4">
-                    <h2 class="text-3xl font-bold text-ocean">Summary Hub</h2>
-                    <div class="flex gap-3">
-                         <select id="hub-month-filter" class="input-field py-1 text-xs w-44" onchange="renderCampaignHub()"><option value="all">Filter: All Periods</option>${monthsOptions.map(m => `<option value="${m}">${m}</option>`).join('')}</select>
-                         <select id="hub-product-filter" class="input-field py-1 text-xs w-36" onchange="renderCampaignHub()"><option value="all">Product: All</option><option value="REX">RingEX</option><option value="RCX">Contact Center</option><option value="AIR">RingSense AI</option></select>
-                    </div>
+                    <h2 class="text-3xl font-bold text-ocean font-bold">Summary Hub</h2>
                 </div>
                 <div id="campaign-hub-container"></div>
             </div>
 
             <!-- TAB: AUDIENCE LIBRARY -->
             <div id="tab-library" class="hidden space-y-8">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-3xl font-bold text-ocean">Audience & ICP Library</h2>
-                    <span class="text-[10px] font-bold text-rc-blue bg-blue-50 px-4 py-2 rounded-full uppercase border border-blue-100">Standard Documentation</span>
-                </div>
+                <h2 class="text-3xl font-bold text-ocean">Audience & ICP Library</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="audience-grid">
                     <div class="audience-card card p-8 border-t-8 border-blue-600">
-                        <h3 class="font-bold text-lg mb-4 text-ocean">REX: (ICP)</h3>
+                        <h3 class="font-bold text-lg mb-4">REX: (ICP)</h3>
                         <div class="space-y-4">
-                            <div><p class="label-documentation text-rc-blue mb-1 font-bold uppercase">Target Inclusions</p><div id="icp-rex-inc" contenteditable="true" class="bg-gray-50 p-3 rounded-lg border border-gray-100" oninput="syncLibraryUpdate('REX', 'inclusion', this.innerText)">IT Decision Makers (CIO, CTO, VP IT, IT Director), Infrastructure Managers, Unified Comms Interests.</div></div>
-                            <div><p class="label-documentation text-red-500 mb-1 font-bold uppercase">Standard Exclusions</p><div id="icp-rex-exc" contenteditable="true" class="bg-[#fff9f9] p-3 rounded-lg border border-[#fee2e2]" oninput="syncLibraryUpdate('REX', 'exclusion', this.innerText)">Company (Current Jobs): Fuze, Microsoft, Cisco, 8x8, RingCentral, Zoom, Webex, Dialpad, NICE, Vonage, Ring Central, GoTo Group, Zoom, Five9, Amazon Connect, Nextiva, Talkdesk, Prem-to-Cloud; Job Seniorities: Entry, Senior, Training, Unpaid</div></div>
+                            <div><p class="label-documentation text-rc-blue mb-1 font-bold">Target Inclusions</p><div id="icp-rex-inc" contenteditable="true" class="bg-gray-50 p-3 rounded-lg border border-gray-100" oninput="syncLibraryUpdate('REX', 'inclusion', this.innerText)">IT Decision Makers (CIO, CTO, VP IT, IT Director), Infrastructure Managers, Unified Comms Interests.</div></div>
+                            <div><p class="label-documentation text-red-500 mb-1 font-bold">Standard Exclusions</p><div id="icp-rex-exc" contenteditable="true" class="bg-[#fff9f9] p-3 rounded-lg border border-[#fee2e2]" oninput="syncLibraryUpdate('REX', 'exclusion', this.innerText)">Company (Current Jobs): Fuze, Microsoft, Cisco, 8x8, RingCentral, Zoom, Webex, Dialpad, NICE, Vonage, Ring Central, GoTo Group, Zoom, Five9, Amazon Connect, Nextiva, Talkdesk, Prem-to-Cloud; Job Seniorities: Entry, Senior, Training, Unpaid</div></div>
                         </div>
                     </div>
                     <div class="audience-card card p-8 border-t-8 border-green-600">
-                        <h3 class="font-bold text-lg mb-4 text-ocean">RCX: (ICP)</h3>
+                        <h3 class="font-bold text-lg mb-4">RCX: (ICP)</h3>
                         <div class="space-y-4">
-                            <div><p class="label-documentation text-rc-blue mb-1 font-bold uppercase">Target Inclusions</p><div id="icp-rcx-inc" contenteditable="true" class="bg-gray-50 p-3 rounded-lg border border-gray-100" oninput="syncLibraryUpdate('RCX', 'inclusion', this.innerText)">Customer Experience Leaders, VP Success, Support Operations, Call Center Directors.</div></div>
-                            <div><p class="label-documentation text-red-500 mb-1 font-bold uppercase">Standard Exclusions</p><div id="icp-rcx-exc" contenteditable="true" class="bg-[#fff9f9] p-3 rounded-lg border border-[#fee2e2]" oninput="syncLibraryUpdate('RCX', 'exclusion', this.innerText)">Company (Current Jobs): Fuze, Microsoft, Cisco, 8x8, RingCentral, Zoom, Webex, Dialpad, NICE, Vonage, Ring Central, GoTo Group, Zoom, Five9, Amazon Connect, Nextiva, Talkdesk, Prem-to-Cloud; Job Seniorities: Entry, Senior, Training, Unpaid</div></div>
+                            <div><p class="label-documentation text-rc-blue mb-1 font-bold">Target Inclusions</p><div id="icp-rcx-inc" contenteditable="true" class="bg-gray-50 p-3 rounded-lg border border-gray-100" oninput="syncLibraryUpdate('RCX', 'inclusion', this.innerText)">Customer Experience Leaders, VP Success, Support Operations, Call Center Directors.</div></div>
+                            <div><p class="label-documentation text-red-500 mb-1 font-bold">Standard Exclusions</p><div id="icp-rcx-exc" contenteditable="true" class="bg-[#fff9f9] p-3 rounded-lg border border-[#fee2e2]" oninput="syncLibraryUpdate('RCX', 'exclusion', this.innerText)">Company (Current Jobs): Fuze, Microsoft, Cisco, 8x8, RingCentral, Zoom, Webex, Dialpad, NICE, Vonage, Ring Central, GoTo Group, Zoom, Five9, Amazon Connect, Nextiva, Talkdesk, Prem-to-Cloud; Job Seniorities: Entry, Senior, Training, Unpaid</div></div>
                         </div>
                     </div>
                     <div class="audience-card card p-8 border-t-8 border-purple-600">
-                        <h3 class="font-bold text-lg mb-4 text-ocean">AIR: (ICP)</h3>
+                        <h3 class="font-bold text-lg mb-4">AIR: (ICP)</h3>
                         <div class="space-y-4">
-                            <div><p class="label-documentation text-rc-blue mb-1 font-bold uppercase">Target Inclusions</p><div id="icp-air-inc" contenteditable="true" class="bg-gray-50 p-3 rounded-lg border border-gray-100" oninput="syncLibraryUpdate('AIR', 'inclusion', this.innerText)">Sales Leadership, RevOps, Sales Enablement Managers, Conversation AI Interests.</div></div>
-                            <div><p class="label-documentation text-red-500 mb-1 font-bold uppercase">Standard Exclusions</p><div id="icp-air-exc" contenteditable="true" class="bg-[#fff9f9] p-3 rounded-lg border border-[#fee2e2]" oninput="syncLibraryUpdate('AIR', 'exclusion', this.innerText)">Company (Current Jobs): Fuze, Microsoft, Cisco, 8x8, RingCentral, Zoom, Webex, Dialpad, NICE, Vonage, Ring Central, GoTo Group, Zoom, Five9, Amazon Connect, Nextiva, Talkdesk, Prem-to-Cloud; Job Seniorities: Entry, Senior, Training, Unpaid</div></div>
+                            <div><p class="label-documentation text-rc-blue mb-1 font-bold">Target Inclusions</p><div id="icp-air-inc" contenteditable="true" class="bg-gray-50 p-3 rounded-lg border border-gray-100" oninput="syncLibraryUpdate('AIR', 'inclusion', this.innerText)">Sales Leadership, RevOps, Sales Enablement Managers, Conversation AI Interests.</div></div>
+                            <div><p class="label-documentation text-red-500 mb-1 font-bold">Standard Exclusions</p><div id="icp-air-exc" contenteditable="true" class="bg-[#fff9f9] p-3 rounded-lg border border-[#fee2e2]" oninput="syncLibraryUpdate('AIR', 'exclusion', this.innerText)">Company (Current Jobs): Fuze, Microsoft, Cisco, 8x8, RingCentral, Zoom, Webex, Dialpad, NICE, Vonage, Ring Central, GoTo Group, Zoom, Five9, Amazon Connect, Nextiva, Talkdesk, Prem-to-Cloud; Job Seniorities: Entry, Senior, Training, Unpaid</div></div>
                         </div>
                     </div>
                 </div>
@@ -403,10 +372,10 @@
                         <div class="text-[11px] space-y-4">
                             <div><p class="label-documentation text-indigo-500">Copy Requirements</p><p>Headline (70), Intro Text (150-600)</p></div>
                             <div><p class="label-documentation text-ocean font-bold">Media & Video Specs</p>
-                                <ul class="list-disc pl-4 space-y-1">
+                                <ul class="list-disc pl-4 space-y-1 font-bold">
                                     <li>Image: 1:1 (Square), 1.91:1 (Landscape)<span class="priority-badge">Primary</span></li>
                                     <li>Video: 16:9, 1:1, 9:16</li>
-                                    <li>Carousel: 1:1 (Max 10 cards)</li>
+                                    <li>Carousel: 1:1</li>
                                 </ul>
                             </div>
                         </div>
@@ -416,7 +385,7 @@
                         <div class="text-[11px] space-y-4">
                             <div><p class="label-documentation text-blue-500">Copy Requirements</p><p>Headline (40), Primary Text (125)</p></div>
                             <div><p class="label-documentation text-ocean font-bold">Media & Video Specs</p>
-                                <ul class="list-disc pl-4 space-y-1">
+                                <ul class="list-disc pl-4 space-y-1 font-bold">
                                     <li>Image: 1:1, 1.91:1<span class="priority-badge">Primary</span></li>
                                     <li>Video: 1:1, 4:5, 9:16 (Reels)</li>
                                     <li>Carousel: 1:1</li>
@@ -429,9 +398,9 @@
                         <div class="text-[11px] space-y-4">
                             <div><p class="label-documentation text-red-500">Copy Requirements</p><p>Short (15), Long (90)</p></div>
                             <div><p class="label-documentation text-ocean font-bold">Media & Video Specs</p>
-                                <ul class="list-disc pl-4 space-y-1">
+                                <ul class="list-disc pl-4 space-y-1 font-bold">
                                     <li>Video: 16:9 (Horizontal)<span class="priority-badge">Primary</span></li>
-                                    <li>Video: 9:16 (Shorts), 1:1</li>
+                                    <li>Video: 9:16 (Shorts)</li>
                                     <li>CTV: 16:9</li>
                                 </ul>
                             </div>
@@ -442,8 +411,8 @@
                         <div class="text-[11px] space-y-4">
                             <div><p class="label-documentation text-green-500">Copy Requirements</p><p>Headlines (40), Descriptions (90)</p></div>
                             <div><p class="label-documentation text-ocean font-bold">Media & Video Specs</p>
-                                <ul class="list-disc pl-4 space-y-1">
-                                    <li>Image: 1.91:1, 1:1, 4:5<span class="priority-badge">Primary</span></li>
+                                <ul class="list-disc pl-4 space-y-1 font-bold">
+                                    <li>Image: 1.91:1, 1:1<span class="priority-badge">Primary</span></li>
                                     <li>Video: 16:9, 1:1, 4:5, 9:16</li>
                                 </ul>
                             </div>
@@ -454,9 +423,8 @@
                         <div class="text-[11px] space-y-4">
                             <div><p class="label-documentation text-gray-500">Requirements</p><p>Native Title (50), Native Body (140)</p></div>
                             <div><p class="label-documentation text-ocean font-bold">Media & Video Specs</p>
-                                <ul class="list-disc pl-4 space-y-1">
+                                <ul class="list-disc pl-4 space-y-1 font-bold">
                                     <li>Display: 300x250, 728x90<span class="priority-badge">Primary</span></li>
-                                    <li>Others: 160x600, 300x600</li>
                                     <li>Native: 1200x627, 600x600</li>
                                 </ul>
                             </div>
@@ -474,7 +442,7 @@
         </main>
     </div>
 
-    <!-- UI Overlay Elements -->
+    <!-- UI Components -->
     <div id="notification-area" class="fixed top-8 right-8 space-y-3 z-[9999]"></div>
     <div id="sync-indicator" class="text-[10px] bg-white border p-2 rounded shadow-lg text-gray-400">Sync: <span id="sync-status">Connected</span></div>
 
@@ -483,9 +451,9 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Initialization
+        // Firebase Logic
         let db, auth, user;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rc-marketing-hub-final-v10';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rc-marketing-hub-v11';
 
         // Global State
         window.hubCampaigns = [];
@@ -493,7 +461,7 @@
         window.draftBudgetPeriods = {};
         window.monthsOptions = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Q1", "Q2", "Q3", "Q4"];
 
-        // FIXED: Explicit window attachment for global functions
+        // ATTACH FUNCTIONS TO WINDOW FOR HTML VISIBILITY
         window.updateHubPeriodView = function(id, key) {
             const c = window.hubCampaigns.find(x => x.id === id);
             if (c) {
@@ -502,18 +470,88 @@
             }
         };
 
-        window.saveCampaignToHub = saveCampaignToHub;
-        window.toggleLock = toggleLock;
-        window.deleteCampaign = deleteCampaign;
-        window.syncLibraryUpdate = syncLibraryUpdate;
-        window.updateHubField = updateHubField;
-        window.updateActualPeriodValue = updateActualPeriodValue;
+        window.saveCampaignToHub = async function() {
+            const productInput = document.getElementById('input-product').value;
+            const vendor = document.getElementById('input-vendor').value;
+            const name = document.getElementById('current-naming-display').innerText;
+            const bmid = document.getElementById('summary-bmid').innerText;
+            const tcpL1 = document.getElementById('input-tcp-l1').value;
+            const tcpL3 = document.getElementById('input-tcp-l3').value;
+            const month = document.getElementById('goal-month').value;
+            const year = document.getElementById('goal-year').value;
+            
+            const inclusion = document.getElementById(`icp-${productInput.toLowerCase()}-inc`)?.innerText || 'Refer Library';
+            const exclusion = document.getElementById(`icp-${productInput.toLowerCase()}-exc`)?.innerText || 'Refer Library';
+
+            const key = `${year}-${month}`;
+            const newGoalSet = {
+                budget: document.getElementById('budget-total').value || '10000',
+                spend: 0,
+                cpc: '-', cpm: '-', lto: '-',
+                goalCpc: document.getElementById('goal-cpc').value.replace(/[$,%]/g, '') || '-',
+                goalCpm: document.getElementById('goal-cpm').value.replace(/[$,%]/g, '') || '-',
+                goalLto: document.getElementById('goal-lto').value.replace(/[$,%]/g, '') || '-'
+            };
+
+            // REGISTRY logic: No duplicates
+            if (!window.bmidRegistry.some(r => r.bmid === bmid)) {
+                window.bmidRegistry.unshift({ date: new Date().toLocaleString(), month, year, product: productInput, name, bmid, vendor, tcpL1, tcpL3 });
+            }
+
+            let existing = window.hubCampaigns.find(c => c.bmid === bmid);
+            if (existing) {
+                if (!existing.periods) existing.periods = {};
+                existing.periods[key] = newGoalSet;
+                if (!existing.month.includes(month)) existing.month.push(month);
+                existing.currentViewKey = key;
+            } else {
+                const campaign = {
+                    id: Date.now(), status: 'Planning', locked: false, name, bmid, product: productInput, vendor, tcpL1, tcpL3,
+                    month: [month], year: year, currentViewKey: key,
+                    periods: { [key]: newGoalSet }, inclusion, exclusion,
+                    finalUrl: document.getElementById('final-url-display').innerText
+                };
+                window.hubCampaigns.unshift(campaign);
+            }
+            await syncToCloud();
+            notify("Campaign Saved Successfully.");
+        };
+
+        window.toggleLock = function(id) { 
+            const c = window.hubCampaigns.find(x => x.id === id); 
+            if (c) { c.locked = !c.locked; renderCampaignHub(); syncToCloud(); } 
+        };
+
+        window.updateHubField = async function(id, field, val) { 
+            const c = window.hubCampaigns.find(x => x.id === id); 
+            if (c) { c[field] = val; await syncToCloud(); } 
+        };
+
+        window.updateActualPeriodValue = async function(id, field, val) { 
+            const c = window.hubCampaigns.find(x => x.id === id); 
+            if (!c || !c.currentViewKey) return; 
+            const key = c.currentViewKey;
+            if (!c.periods) c.periods = {}; 
+            if (!c.periods[key]) c.periods[key] = { budget: 0, spend: 0, cpc: '-', cpm: '-', lto: '-' }; 
+            const cleanVal = val.replace(/[$,%]/g, '');
+            c.periods[key][field] = cleanVal; 
+            renderCampaignHub();
+            await syncToCloud(); 
+        };
+
+        window.deleteCampaign = function(id) { 
+            if(confirm("Permanently delete documented strategy?")) { 
+                window.hubCampaigns = window.hubCampaigns.filter(x => x.id !== id); 
+                renderCampaignHub(); 
+                syncToCloud(); 
+            } 
+        };
 
         async function initCloudSync() {
             try {
-                const firebaseConfig = JSON.parse(__firebase_config || "{}");
-                if (!firebaseConfig.apiKey) throw new Error("Offline");
-                const app = initializeApp(firebaseConfig);
+                const config = JSON.parse(__firebase_config || "{}");
+                if (!config.apiKey) throw new Error("Offline");
+                const app = initializeApp(config);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
@@ -532,7 +570,7 @@
                     }
                 });
             } catch (err) { 
-                document.getElementById('header-sync-info').innerText = "Strategy Hub Offline";
+                document.getElementById('header-sync-info').innerText = "Local Strategy Offline";
             }
         }
 
@@ -559,143 +597,47 @@
             } catch (err) { console.error("Cloud Error", err); }
         }
 
-        const getLibraryText = (product, type) => {
-            const id = `icp-${product.toLowerCase()}-${type === 'inclusion' ? 'inc' : 'exc'}`;
-            const el = document.getElementById(id);
-            return el ? el.innerText : 'Refer Documentation';
-        };
-
-        async function saveCampaignToHub() {
-            const productInput = document.getElementById('input-product').value;
-            const vendor = document.getElementById('input-vendor').value;
-            const name = document.getElementById('current-naming-display').innerText;
-            const bmid = document.getElementById('summary-bmid').innerText;
-            const tcpL1 = document.getElementById('input-tcp-l1').value;
-            const tcpL3 = document.getElementById('input-tcp-l3').value;
-            const month = document.getElementById('goal-month').value;
-            const year = document.getElementById('goal-year').value;
-            
-            const inclusion = getLibraryText(productInput, 'inclusion');
-            const exclusion = getLibraryText(productInput, 'exclusion');
-
-            const key = `${year}-${month}`;
-            const newGoalSet = {
-                budget: document.getElementById('budget-total').value || '10000',
-                spend: 0,
-                cpc: '-', cpm: '-', lto: '-',
-                goalCpc: document.getElementById('goal-cpc').value.replace(/[$,%]/g, '') || '-',
-                goalCpm: document.getElementById('goal-cpm').value.replace(/[$,%]/g, '') || '-',
-                goalLto: document.getElementById('goal-lto').value.replace(/[$,%]/g, '') || '-'
-            };
-
-            // REGISTRY LOGIC: Prevent duplicates and maintain original Date Logged
-            let existingInRegistry = window.bmidRegistry.find(r => r.bmid === bmid);
-            if (!existingInRegistry) {
-                window.bmidRegistry.unshift({ 
-                    date: new Date().toLocaleString(), 
-                    month, 
-                    year, 
-                    product: productInput, 
-                    name, 
-                    bmid, 
-                    vendor, 
-                    tcpL1, 
-                    tcpL3 
-                });
-            }
-
-            // HUB CAMPAIGN MERGE LOGIC
-            let existing = window.hubCampaigns.find(c => c.name === name && c.bmid === bmid);
-            
-            if (existing) {
-                if (!existing.periods) existing.periods = {};
-                existing.periods[key] = newGoalSet;
-                if (!existing.month.includes(month)) existing.month.push(month);
-                existing.currentViewKey = key;
-            } else {
-                const campaign = {
-                    id: Date.now(), status: 'Planning', locked: false, name, bmid, product: productInput, vendor, tcpL1, tcpL3,
-                    month: [month], year: year,
-                    currentViewKey: key,
-                    introDate: document.getElementById('input-intro-date')?.value || '-',
-                    launchDate: document.getElementById('input-launch-date')?.value || '-',
-                    endDate: document.getElementById('input-end-date')?.value || '-',
-                    periods: { [key]: newGoalSet }, 
-                    finalUrl: document.getElementById('final-url-display').innerText, 
-                    inclusion, exclusion
-                };
-                window.hubCampaigns.unshift(campaign);
-            }
-
-            await syncToCloud();
-            notify("Campaign Data Registered & Saved.");
-        }
-
         function renderCampaignHub() {
             const container = document.getElementById('campaign-hub-container');
             if(!container) return;
-            container.innerHTML = `<div class="card overflow-hidden shadow-xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead class="bg-ocean text-white uppercase font-bold"><tr class="hub-header-text"><th class="p-4 border-r border-white/5 w-24">Assets</th><th class="p-4 border-r border-white/5 w-24">Copy</th><th class="p-4 w-12 text-center">Health</th><th class="p-4 w-16 text-center">Status</th><th class="p-4 text-center w-28 font-bold text-xs">Period</th><th class="p-4">Prod</th><th class="p-4 w-48 font-bold text-xs">Campaign Name</th><th class="p-4 font-bold text-xs">BMID</th><th class="p-4 w-40 font-bold text-xs">Inclusion (ICP)</th><th class="p-4 w-40 font-bold text-xs">Exclusion (ICP)</th><th class="p-4 bg-rc-blue/10">Budget (Σ)</th><th class="p-4 bg-green-600/10 text-green-900 font-bold">Actual (Σ)</th><th class="p-4 text-indigo-700 font-bold">Goal CPC</th><th class="p-4">Actual CPC</th><th class="p-4 text-indigo-700 font-bold">Goal CPM</th><th class="p-4">Actual CPM</th><th class="p-4 font-bold">Actual LtO</th><th class="p-4 text-center font-bold text-xs">Actions</th></tr></thead><tbody class="divide-y divide-[#eef2f6]" id="campaign-hub-body"></tbody></table></div></div>`;
+            container.innerHTML = `<div class="card overflow-hidden shadow-xl"><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead class="bg-ocean text-white uppercase font-bold"><tr class="hub-header-text"><th class="p-4 border-r border-white/5 w-24">Assets</th><th class="p-4 border-r border-white/5 w-24">Copy</th><th class="p-4 w-12 text-center">Health</th><th class="p-4 w-16 text-center">Status</th><th class="p-4 text-center w-28 font-bold text-xs">Period</th><th class="p-4">Prod</th><th class="p-4 w-48 font-bold text-xs">Campaign Name</th><th class="p-4 font-bold text-xs">BMID</th><th class="p-4 w-40 font-bold text-xs">Inclusion (ICP)</th><th class="p-4 w-40 font-bold text-xs">Exclusion (ICP)</th><th class="p-4 bg-rc-blue/10">Budget ($)</th><th class="p-4 bg-green-600/10 text-green-900 font-bold">Actual ($)</th><th class="p-4 text-indigo-700 font-bold">Goal CPC</th><th class="p-4">Actual CPC</th><th class="p-4 text-indigo-700 font-bold">Goal CPM</th><th class="p-4">Actual CPM</th><th class="p-4 font-bold">Actual LtO</th><th class="p-4 text-center font-bold text-xs">Actions</th></tr></thead><tbody class="divide-y divide-[#eef2f6]" id="campaign-hub-body"></tbody></table></div></div>`;
             const body = document.getElementById('campaign-hub-body');
             
             (window.hubCampaigns || []).forEach(c => {
-                if (!c.currentViewKey) c.currentViewKey = `${c.year}-${c.month[0]}`;
-                const activeData = c.periods?.[c.currentViewKey] || { budget: 0, spend: 0, cpc: '-', cpm: '-', lto: '-', goalCpc: '-', goalCpm: '-', goalLto: '-' };
+                const activeKey = c.currentViewKey || `${c.year}-${c.month[0]}`;
+                const activeData = c.periods?.[activeKey] || { budget: 0, spend: 0, cpc: '-', cpm: '-', lto: '-', goalCpc: '-', goalCpm: '-', goalLto: '-' };
 
                 let periodSelect = `<select onchange="window.updateHubPeriodView(${c.id}, this.value)" class="hub-input font-bold">`;
                 Object.keys(c.periods || {}).forEach(k => {
-                    const monthName = k.split('-')[1];
-                    periodSelect += `<option value="${k}" ${c.currentViewKey === k ? 'selected' : ''}>${monthName}</option>`;
+                    periodSelect += `<option value="${k}" ${activeKey === k ? 'selected' : ''}>${k.split('-')[1]}</option>`;
                 });
                 periodSelect += `</select>`;
 
                 const row = document.createElement('tr');
                 row.className = c.locked ? 'row-locked' : '';
                 row.innerHTML = `
-                    <td class="p-4 border-r border-[#eef2f6]"><input type="text" value="${c.assetLink||''}" class="hub-input w-full ${c.locked?'locked-field':''}" onblur="updateHubField(${c.id}, 'assetLink', this.value)"></td>
-                    <td class="p-4 border-r border-[#eef2f6]"><input type="text" value="${c.copyLink||''}" class="hub-input w-full ${c.locked?'locked-field':''}" onblur="updateHubField(${c.id}, 'copyLink', this.value)"></td>
-                    <td class="p-4 text-center"><div class="health-indicator mx-auto ${activeData.budget > 0 && activeData.spend/activeData.budget > 1.1 ? 'health-critical' : 'health-good'}"></div></td>
-                    <td class="p-4"><select onchange="updateHubField(${c.id}, 'status', this.value)" class="hub-input font-bold ${c.locked?'locked-field':''}"><option value="Planning" ${c.status==='Planning'?'selected':''}>Planning</option><option value="Active" ${c.status==='Active'?'selected':''}>Active</option><option value="Waiting for creative" ${c.status==='Waiting for creative'?'selected':''}>Waiting for creative</option><option value="Blocked" ${c.status==='Blocked'?'selected':''}>Blocked</option><option value="Ended" ${c.status==='Ended'?'selected':''}>Ended</option></select></td>
+                    <td class="p-4 border-r border-[#eef2f6]"><input type="text" value="${c.assetLink||''}" class="hub-input w-full ${c.locked?'locked-field':''}" onblur="window.updateHubField(${c.id}, 'assetLink', this.value)"></td>
+                    <td class="p-4 border-r border-[#eef2f6]"><input type="text" value="${c.copyLink||''}" class="hub-input w-full ${c.locked?'locked-field':''}" onblur="window.updateHubField(${c.id}, 'copyLink', this.value)"></td>
+                    <td class="p-4 text-center"><div class="health-indicator mx-auto ${activeData.spend > activeData.budget * 1.1 ? 'background-red-500' : 'health-good'}"></div></td>
+                    <td class="p-4"><select onchange="window.updateHubField(${c.id}, 'status', this.value)" class="hub-input font-bold ${c.locked?'locked-field':''}"><option value="Planning" ${c.status==='Planning'?'selected':''}>Planning</option><option value="Active" ${c.status==='Active'?'selected':''}>Active</option><option value="Ended" ${c.status==='Ended'?'selected':''}>Ended</option></select></td>
                     <td class="p-2">${periodSelect}</td>
                     <td class="p-4 font-bold text-rc-blue hub-cell-text">${c.product}</td>
                     <td class="p-4 font-bold hub-cell-text w-48 break-words text-xs">${c.name}</td>
                     <td class="p-4 font-mono text-rc-blue hub-cell-text text-xs">${c.bmid}</td>
-                    <td class="p-4 font-bold"><div contenteditable="${!c.locked}" class="p-1 rounded border hub-cell-text ${c.locked?'locked-field':''}" onblur="updateHubField(${c.id}, 'inclusion', this.innerText)">${c.inclusion}</div></td>
-                    <td class="p-4 font-bold"><div contenteditable="${!c.locked}" class="p-1 rounded border hub-cell-text ${c.locked?'locked-field':''}" onblur="updateHubField(${c.id}, 'exclusion', this.innerText)">${c.exclusion}</div></td>
+                    <td class="p-4 font-bold"><div contenteditable="${!c.locked}" class="p-1 rounded border hub-cell-text ${c.locked?'locked-field':''}" onblur="window.updateHubField(${c.id}, 'inclusion', this.innerText)">${c.inclusion}</div></td>
+                    <td class="p-4 font-bold"><div contenteditable="${!c.locked}" class="p-1 rounded border hub-cell-text ${c.locked?'locked-field':''}" onblur="window.updateHubField(${c.id}, 'exclusion', this.innerText)">${c.exclusion}</div></td>
                     <td class="p-4 font-bold hub-cell-text">$${parseFloat(activeData.budget).toLocaleString()}</td>
-                    <td class="p-4 bg-green-50 font-bold"><input type="text" value="$${activeData.spend}" class="hub-input w-20 font-bold text-green-700" onblur="updateActualPeriodValue(${c.id}, 'spend', this.value)"></td>
+                    <td class="p-4 bg-green-50 font-bold"><input type="text" value="$${activeData.spend}" class="hub-input w-20 font-bold text-green-700" onblur="window.updateActualPeriodValue(${c.id}, 'spend', this.value)"></td>
                     <td class="p-4 text-center hub-cell-text font-bold text-indigo-700">$${activeData.goalCpc || '-'}</td>
-                    <td class="p-4"><input type="text" value="$${activeData.cpc}" class="hub-input w-12" onblur="updateActualPeriodValue(${c.id}, 'cpc', this.value)"></td>
+                    <td class="p-4"><input type="text" value="$${activeData.cpc}" class="hub-input w-12" onblur="window.updateActualPeriodValue(${c.id}, 'cpc', this.value)"></td>
                     <td class="p-4 text-center hub-cell-text font-bold text-indigo-700">$${activeData.goalCpm || '-'}</td>
-                    <td class="p-4"><input type="text" value="$${activeData.cpm}" class="hub-input w-12" onblur="updateActualPeriodValue(${c.id}, 'cpm', this.value)"></td>
-                    <td class="p-4"><input type="text" value="${activeData.lto}%" class="hub-input w-12" onblur="updateActualPeriodValue(${c.id}, 'lto', this.value)"></td>
-                    <td class="p-4 text-center space-x-2 flex justify-center"><button onclick="toggleLock(${c.id})" class="${c.locked?'text-rc-blue':'text-gray-300'}"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" /></svg></button><button onclick="deleteCampaign(${c.id})" class="text-red-300">×</button></td>`;
+                    <td class="p-4"><input type="text" value="$${activeData.cpm}" class="hub-input w-12" onblur="window.updateActualPeriodValue(${c.id}, 'cpm', this.value)"></td>
+                    <td class="p-4"><input type="text" value="${activeData.lto}%" class="hub-input w-12" onblur="window.updateActualPeriodValue(${c.id}, 'lto', this.value)"></td>
+                    <td class="p-4 text-center space-x-2 flex justify-center"><button onclick="window.toggleLock(${c.id})" class="${c.locked?'text-rc-blue':'text-gray-300'}"><svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" /></svg></button><button onclick="window.deleteCampaign(${c.id})" class="text-red-300">×</button></td>`;
                 body.appendChild(row);
             });
         }
 
-        function toggleLock(id) { const c = window.hubCampaigns.find(x => x.id === id); if (c) { c.locked = !c.locked; renderCampaignHub(); syncToCloud(); } }
-        
-        async function updateHubField(id, field, val) { 
-            const c = window.hubCampaigns.find(x => x.id === id); 
-            if (c) { c[field] = val; await syncToCloud(); } 
-        }
-
-        async function updateActualPeriodValue(id, field, val) { 
-            const c = window.hubCampaigns.find(x => x.id === id); 
-            if (!c || !c.currentViewKey) return; 
-            const key = c.currentViewKey;
-            if (!c.periods) c.periods = {}; 
-            if (!c.periods[key]) c.periods[key] = { budget: 0, spend: 0, cpc: '-', cpm: '-', lto: '-' }; 
-            const cleanVal = val.replace(/[$,%]/g, '');
-            c.periods[key][field] = cleanVal; 
-            renderCampaignHub();
-            await syncToCloud(); 
-        }
-
-        function deleteCampaign(id) { if(confirm("Permanently delete documentation?")) { window.hubCampaigns = window.hubCampaigns.filter(x => x.id !== id); renderCampaignHub(); syncToCloud(); } }
-        
-        function syncLibraryUpdate(product, field, text) { (window.hubCampaigns || []).forEach(c => { if (c.product === product) c[field] = text; }); syncToCloud(); }
-        
         function renderRegistry() {
             const container = document.getElementById('bmid-registry-container');
             if(!container) return;
