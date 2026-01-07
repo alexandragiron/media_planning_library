@@ -420,11 +420,37 @@
                             <p><strong>Primary Text:</strong> 125 chars</p>
                         </div>
                     </div>
+                    <div class="card p-5 border-l-4 border-red-500">
+                        <h3 class="font-bold text-red-600 uppercase text-[10px] tracking-widest mb-3">YouTube</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Short Headline:</strong> 15 chars</p>
+                            <p><strong>Long Headline:</strong> 90 chars</p>
+                            <p><strong>Description:</strong> 70 chars</p>
+                            <p><strong>CTA:</strong> 10 chars</p>
+                        </div>
+                    </div>
                     <div class="card p-5 border-l-4 border-orange-600">
                         <h3 class="font-bold text-orange-600 uppercase text-[10px] tracking-widest mb-3">Reddit</h3>
                         <div class="text-[10px] space-y-2" contenteditable="true">
                             <p><strong>Headline:</strong> Max 300 chars</p>
                             <p><strong>Body Text:</strong> Optional but recommended</p>
+                            <p><strong>CTA:</strong> Button required</p>
+                        </div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-green-600">
+                        <h3 class="font-bold text-green-600 uppercase text-[10px] tracking-widest mb-3">DemandGen</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Headlines (up to 5):</strong> 40 chars each</p>
+                            <p><strong>Descriptions (up to 5):</strong> 90 chars each</p>
+                            <p><strong>Logo:</strong> 1200x1200px</p>
+                        </div>
+                    </div>
+                    <div class="card p-5 border-l-4 border-gray-600">
+                        <h3 class="font-bold text-gray-700 uppercase text-[10px] tracking-widest mb-3">Adaptive / StackAdapt</h3>
+                        <div class="text-[10px] space-y-2" contenteditable="true">
+                            <p><strong>Native Title:</strong> 50 chars</p>
+                            <p><strong>Native Body:</strong> 140 chars</p>
+                            <p><strong>Standard Display:</strong> 300x250, 728x90, 160x600, 300x600</p>
                         </div>
                     </div>
                 </div>
@@ -699,7 +725,6 @@
 
             const result = parts.join('_').toUpperCase().substring(0, 80);
             
-            // UI Updates - Both Naming Preview and Goal Summary Name
             const nameDisplays = document.querySelectorAll('#current-naming-display');
             nameDisplays.forEach(el => el.innerText = result);
 
